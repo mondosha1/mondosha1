@@ -1,5 +1,3 @@
-# @AngularClass
-
 # Logs
 logs
 *.log
@@ -21,41 +19,30 @@ coverage
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 build/Release
 
+# Dependency directory
+# Commenting this out is preferred by some people, see
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git-
+/node_modules/
+/typings/
+
 # Users Environment Variables
 .lock-wscript
+.tsdrc
+.typingsrc
 
-# OS generated files #
-.DS_Store
-ehthumbs.db
-Icon?
-Thumbs.db
+#IDE configuration files
+.idea
+.vscode
+*.iml
 
-# Node Files #
-/node_modules
-/bower_components
-npm-debug.log
+/tools/**/*.js
+dist
+dev
+docs
+lib
+test
+tmp
 
-# Coverage #
-/coverage/
+gulpfile.js
+gulpfile.js.map
 
-# Typing #
-/src/typings/tsd/
-/typings/
-/tsd_typings/
-
-# Dist #
-/dist
-/public/__build__/
-/src/*/__build__/
-/__build__/**
-/public/dist/
-/src/*/dist/
-/dist/**
-.webpack.json
-
-# Doc #
-/doc/
-
-# IDE #
-.idea/
-*.swp

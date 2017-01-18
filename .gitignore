@@ -37,13 +37,12 @@ build/Release
 .vscode
 *.iml
 
-/tools/**/*.js
-/src/**/*.js
 dist
 dev
 docs
 lib
 tmp
 
-report
+.containers
 template-ci
+.yarnrc

@@ -46,3 +46,4 @@ tmp
 .containers
 template-ci
 .yarnrc
+/.dockerignore

@@ -48,3 +48,4 @@ template-ci
 .yarnrc
 /.dockerignore
 npm-debug.log*
+.docker

@@ -46,6 +46,8 @@ tmp
 .containers
 template-ci
 .yarnrc
+.yarncache
 /.dockerignore
 npm-debug.log*
 .docker
+.env

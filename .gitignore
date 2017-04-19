@@ -31,6 +31,7 @@ typings/
 .lock-wscript
 .tsdrc
 .typingsrc
+google_credentials.local.json
 
 #IDE configuration files
 .idea/*

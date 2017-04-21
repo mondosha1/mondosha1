@@ -54,7 +54,6 @@ test/**/*.d.ts
 test/**/*.map
 
 # Yarn files
-yarn.lock
 .yarnrc
 .yarncache
 .yarnclean
@@ -70,3 +69,4 @@ npm-debug.log*
 .dockerignore
 .docker
 .env
+tags.env

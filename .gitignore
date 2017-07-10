@@ -58,6 +58,8 @@ test/**/*.map
 .yarncache
 .yarnclean
 
+npm_cache_*
+
 # CI files
 .npmrc
 .containers

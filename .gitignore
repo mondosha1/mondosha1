@@ -59,6 +59,7 @@ test/**/*.map
 .yarnclean
 
 npm_cache_*
+package-lock.json
 
 # CI files
 .npmrc

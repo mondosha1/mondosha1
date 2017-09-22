@@ -32,6 +32,7 @@ typings/
 .tsdrc
 .typingsrc
 google_credentials.local.json
+secring.gpg
 
 #IDE configuration files
 .idea/*

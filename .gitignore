@@ -38,6 +38,7 @@ openpgp*
 #IDE configuration files
 .idea/*
 !.idea/codeStyleSettings.xml
+!.idea/runConfigurations/*.xml
 .vscode
 *.iml
 

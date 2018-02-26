@@ -46,7 +46,6 @@ openpgp*
 dist
 dev
 docs
-lib
 tmp
 
 src/**/*.js

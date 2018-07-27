@@ -36,7 +36,7 @@ secring.gpg
 openpgp*
 
 #IDE configuration files
-.idea/*
+**/.idea/*
 !.idea/codeStyleSettings.xml
 !.idea/runConfigurations/*.xml
 .vscode

@@ -38,7 +38,7 @@ openpgp*
 
 #IDE configuration files
 **/.idea/*
-!.idea/codeStyles/*.xml
+.idea/codeStyles/*.xml
 !.idea/encodings.xml
 !.idea/service-platform.iml
 !.idea/modules.xml

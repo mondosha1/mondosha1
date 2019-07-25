@@ -83,3 +83,4 @@ npm-debug.log*
 .env
 tags.env
 .DS_Store
+tmp/*

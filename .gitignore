@@ -72,7 +72,6 @@ npm_cache_*
 package-lock.json
 
 # CI files
-.npmrc
 .containers
 template-ci
 

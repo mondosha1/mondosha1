@@ -19,6 +19,7 @@ const chainMatchers = (matchers, originalMatchers = matchers) => {
 
 export const chain = expect => {
   // proxy the expect function
+  // tslint:disable-next-line:no-let
   let expectProxy = Object.assign(
     (...args) => chainMatchers(expect(...args)), // partially apply expect to get all matchers and chain them
     expect // clone additional properties on expect

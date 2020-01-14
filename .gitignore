@@ -83,3 +83,4 @@ npm-debug.log*
 tags.env
 .DS_Store
 tmp/*
+gitcommit.txt

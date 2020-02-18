@@ -5,8 +5,12 @@
       true,
       "lodash",
       "@progress/kendo-angular-dialog",
-      { "rxjs/operators": ["tap"] },
-      { "lodash/fp": ["tap"] },
+      {
+        "rxjs/operators": ["tap"]
+      },
+      {
+        "lodash/fp": ["tap"]
+      },
       "@mondosha1/jest"
     ]
   }

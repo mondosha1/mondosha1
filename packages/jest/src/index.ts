@@ -1,3 +1,6 @@
+/* tslint:disable:ordered-imports */
+import 'jest-chain'
 import 'jest-extended'
-import { chain } from './chain'
-;(global as any).expect = chain((global as any).expect)
+import { toBeActionObservable } from './action-observable.matcher'
+
+expect.extend({ toBeActionObservable })

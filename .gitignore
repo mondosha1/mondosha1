@@ -69,11 +69,13 @@ test/**/*.map
 .yarnclean
 
 npm_cache_*
-package-lock.json
 
 # CI files
 .containers
 template-ci
+
+# Jenkins dev
+src/jenkins.gdsl
 
 # Misc stuff
 v8-compile-cache

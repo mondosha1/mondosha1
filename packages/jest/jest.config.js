@@ -3,6 +3,7 @@ module.exports = {
   preset: '../../jest-preset.js',
   coverageDirectory: '../../coverage/packages/jest',
   testEnvironment: 'node',
+  passWithNoTests: true,
   reporters: [
     'jest-silent-reporter',
     [

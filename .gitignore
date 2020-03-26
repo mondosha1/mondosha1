@@ -45,6 +45,7 @@ openpgp*
 !.idea/vcs.xml
 !.idea/misc.xml
 !.idea/codeStyleSettings.xml
+!.idea/inspectionProfiles/*.xml
 !.idea/runConfigurations/*.xml
 .vscode
 *.iml

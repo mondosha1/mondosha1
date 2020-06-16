@@ -87,3 +87,4 @@ tags.env
 .DS_Store
 tmp/*
 gitcommit.txt
+/apps/api/environments/environment-custom.ts

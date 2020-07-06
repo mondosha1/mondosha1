@@ -36,7 +36,11 @@ secring.gpg
 openpgp*
 
 #IDE configuration files
-**/.idea/*
+.idea/*.xml
+.idea/dataSources/*.xml
+.idea/dictionaries/*.xml
+.idea/libraries/*.xml
+.idea/shelf/**
 .idea/codeStyles/*.xml
 !.idea/encodings.xml
 !.idea/service-platform.iml

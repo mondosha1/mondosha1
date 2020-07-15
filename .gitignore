@@ -37,7 +37,7 @@ openpgp*
 
 #IDE configuration files
 .idea/*.xml
-.idea/dataSources/*.xml
+.idea/dataSources/*
 .idea/dictionaries/*.xml
 .idea/libraries/*.xml
 .idea/shelf/**

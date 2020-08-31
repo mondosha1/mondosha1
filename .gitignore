@@ -79,6 +79,9 @@ npm_cache_*
 .containers
 template-ci
 
+# Tooling local config
+tools/pgp/configs/*
+
 # Jenkins dev
 src/jenkins.gdsl
 

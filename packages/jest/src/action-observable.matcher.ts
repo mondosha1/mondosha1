@@ -1,4 +1,4 @@
-/* tslint:disable:rxjs-no-internal */
+/* eslint-disable rxjs/no-internal */
 import { getTestScheduler } from 'jasmine-marbles'
 import { TestObservable } from 'jasmine-marbles/src/test-observables'
 import { equals, mapValues, omit } from 'lodash/fp'

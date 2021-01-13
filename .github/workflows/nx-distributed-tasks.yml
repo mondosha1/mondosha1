@@ -1,0 +1,205 @@
+name: Nx Distributed Tasks
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  BUILD_ARTIFACTS: build-artifacts
+  CYPRESS_CACHE: cache-cypress
+  CYPRESS_CACHE_FOLDER: cache/Cypress
+  DEPENDENCIES_CACHE: cache-node-modules
+  DOCKER_REGISTRY: docker-registry.elium.io:5001
+  E2E_ARTIFACTS: e2e-artifacts
+  TEST_ARTIFACTS: test-artifacts
+
+jobs:
+
+  vars:
+    runs-on: ubuntu-latest
+    outputs:
+      GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}
+      GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}
+      GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
+      GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
+    steps:
+      - id: GITHUB_HEAD_REF
+        run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}})"
+      - id: GITHUB_HEAD_SLUG
+        run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
+      - id: GITHUB_BASE_REF
+        run: echo "::set-output name=value::$(echo ${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}})"
+      - id: GITHUB_BASE_SLUG
+        run: echo "::set-output name=value::$(echo ${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
+
+  install-deps:
+    runs-on: ubuntu-latest
+    needs: vars
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+      - uses: actions/setup-node@v1
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          node-version: 12.16.3
+      - name: npm set token
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+      - name: npm install
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: rm -rf node_modules ; npm install --from-lock-file --prefer-offline --no-audit --unsafe-perm
+
+  precheck:
+    runs-on: ubuntu-latest
+    needs: [vars, install-deps]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('yarn.lock') }}
+      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
+      - name: Compute Nx arguments
+        run: echo "NX_ARGUMENTS=--base=origin/${{ needs.vars.outputs.GITHUB_BASE_REF }}" >> $GITHUB_ENV
+        if: needs.vars.outputs.GITHUB_HEAD_REF != needs.vars.outputs.GITHUB_BASE_REF
+      - name: nx ${{ matrix.target }}
+        run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js format:check $NX_ARGUMENTS
+      - name: nx ${{ matrix.target }}
+        run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-lint $NX_ARGUMENTS
+
+  calculate-targets:
+    runs-on: ubuntu-latest
+    needs: [vars, install-deps]
+    env:
+      distributedTargets: lint,test,build,e2e
+      distributedChunkSize: 14,12,5,4
+      dockerTasksChunkSize: 5
+    outputs:
+      DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
+      DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.value }}
+      DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
+      - name: Calculate distributed targets
+        id: DISTRIBUTED_TARGETS
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js ${{ env.distributedTargets }} ${{ env.distributedChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+      - name: Calculate docker build tasks
+        id: DOCKER_BUILD_TASKS
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-build ${{ env.dockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+      - name: Calculate docker tag tasks
+        id: DOCKER_TAG_TASKS
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-tag ${{ env.dockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+
+  distributed-task:
+    runs-on: ubuntu-latest
+    needs: [vars, calculate-targets]
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.calculate-targets.outputs.DISTRIBUTED_TARGETS) }}
+    steps:
+      - id: TASK_HASH
+        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')"
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+      - name: npm set token
+        if: startsWith(matrix.tasks, 'e2e:')
+        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+      - name: Cache Cypress
+        uses: actions/cache@v2
+        if: startsWith(matrix.tasks, 'e2e:')
+        with:
+          path: ${{ env.CYPRESS_CACHE_FOLDER }}
+          key: ${{ env.CYPRESS_CACHE }}
+      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
+      - name: Compute Nx arguments
+        if: startsWith(matrix.tasks, 'build:') || startsWith(matrix.tasks, 'e2e:')
+        run: echo "NX_ARGUMENTS=--prod" >> $GITHUB_ENV
+      - name: nx ${{ matrix.tasks }}
+        if: startsWith(matrix.tasks, 'e2e:') != true
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} $NX_ARGUMENTS
+      - name: nx ${{ matrix.tasks }}
+        if: startsWith(matrix.tasks, 'e2e:')
+        uses: cypress-io/github-action@v2
+        with:
+          command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} $NX_ARGUMENTS
+      - name: Upload test artifacts
+        if: startsWith(matrix.tasks, 'test:')
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.TEST_ARTIFACTS }}-${{ steps.TASK_HASH.outputs.value }}
+          path: |
+            report
+            coverage
+      - name: Upload build artifacts
+        if: startsWith(matrix.tasks, 'build:')
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.BUILD_ARTIFACTS }}-${{ steps.TASK_HASH.outputs.value }}
+          path: dist
+      - name: Upload e2e artifacts
+        if: startsWith(matrix.tasks, 'e2e:')
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.E2E_ARTIFACTS }}-${{ steps.TASK_HASH.outputs.value }}
+          path: dist
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [vars, precheck, calculate-targets, distributed-task]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS) }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+      - name: Merge build artifacts
+        run: mkdir -p dist/apps ; for folder in ./${{ env.BUILD_ARTIFACTS }}*/apps/*; do mv $folder ./dist/apps/; done; ls -l dist/*
+      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
+      - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
+      - name: npm set token for installing dedicated Node apps dependencies
+        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+      - name: nx ${{ matrix.tasks }}
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} --args="--githash=${{ github.sha }}"
+
+  docker-tag:
+    runs-on: ubuntu-latest
+    needs: [vars, calculate-targets, docker-build]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS) }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
+      - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
+      - name: nx ${{ matrix.tasks }}
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} --args="--githash=${{ github.sha }} --tag=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"

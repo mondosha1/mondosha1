@@ -1,4 +1,4 @@
-/* tslint:disable:ordered-imports */
+/* eslint-disable import/order */
 import 'jest-chain'
 import 'jest-extended'
 import { toBeActionObservable } from './action-observable.matcher'

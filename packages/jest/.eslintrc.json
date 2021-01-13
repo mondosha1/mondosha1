@@ -1,0 +1,36 @@
+{
+  "extends": "../../../.eslintrc.next.json",
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parserOptions": {
+        "project": ["packages/jest/tsconfig.lib.json", "packages/jest/tsconfig.spec.json"]
+      },
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              "lodash",
+              "@progress/kendo-angular-dialog",
+              {
+                "name": "rxjs/operators",
+                "importNames": ["tap"],
+                "message": "Prefer use tap from @mondosha1/shared/util"
+              },
+              {
+                "name": "lodash/fp",
+                "importNames": ["tap", "differenceBy"]
+              },
+              {
+                "name": "@ngrx/store",
+                "importNames": ["props"]
+              },
+              "@mondosha1/shared/util-jest"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

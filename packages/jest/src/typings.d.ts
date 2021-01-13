@@ -1,4 +1,4 @@
-/* tslint:disable */
+/* eslint-disable */
 declare global {
   namespace jest {
     interface Matchers<R> {

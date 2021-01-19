@@ -143,7 +143,7 @@ jobs:
           command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} $NX_ARGUMENTS
       - name: Upload test artifacts
         if: startsWith(matrix.tasks, 'test:')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2.2.2
         with:
           name: ${{ env.TEST_ARTIFACTS }}-${{ steps.TASK_HASH.outputs.value }}
           path: |
@@ -151,13 +151,13 @@ jobs:
             coverage
       - name: Upload build artifacts
         if: startsWith(matrix.tasks, 'build:')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2.2.2
         with:
           name: ${{ env.BUILD_ARTIFACTS }}-${{ steps.TASK_HASH.outputs.value }}
           path: dist
       - name: Upload e2e artifacts
         if: startsWith(matrix.tasks, 'e2e:')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2.2.2
         with:
           name: ${{ env.E2E_ARTIFACTS }}-${{ steps.TASK_HASH.outputs.value }}
           path: dist

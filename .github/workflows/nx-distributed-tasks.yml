@@ -119,6 +119,8 @@ jobs:
     steps:
       - id: TASK_HASH
         run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')"
+      - id: TASK_PREFIX
+        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')"
       - uses: actions/checkout@v2
       - name: Cache node modules
         uses: actions/cache@v2
@@ -150,7 +152,7 @@ jobs:
         if: startsWith(matrix.tasks, 'test:')
         uses: actions/upload-artifact@v2.2.2
         with:
-          name: ${{ env.TEST_ARTIFACTS }}-${{ steps.TASK_HASH.outputs.value }}
+          name: ${{ env.TEST_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
           path: |
             report
             coverage
@@ -158,13 +160,13 @@ jobs:
         if: startsWith(matrix.tasks, 'build:')
         uses: actions/upload-artifact@v2.2.2
         with:
-          name: ${{ env.BUILD_ARTIFACTS }}-${{ steps.TASK_HASH.outputs.value }}
+          name: ${{ env.BUILD_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
           path: dist
       - name: Upload e2e artifacts
         if: startsWith(matrix.tasks, 'e2e:')
         uses: actions/upload-artifact@v2.2.2
         with:
-          name: ${{ env.E2E_ARTIFACTS }}-${{ steps.TASK_HASH.outputs.value }}
+          name: ${{ env.E2E_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
           path: dist
 
   docker-build:

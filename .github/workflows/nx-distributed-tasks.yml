@@ -14,6 +14,8 @@ env:
   DOCKER_REGISTRY: docker-registry.elium.io:5001
   E2E_ARTIFACTS: e2e-artifacts
   TEST_ARTIFACTS: test-artifacts
+  NG_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.S3_PROXY_AWS_ACCESS_KEY_ID }}
+  NG_DEPLOY_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PROXY_AWS_SECRET_ACCESS_KEY }}
 
 jobs:
 
@@ -136,7 +138,6 @@ jobs:
         with:
           path: ${{ env.CYPRESS_CACHE_FOLDER }}
           key: ${{ env.CYPRESS_CACHE }}
-      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
       - name: Compute Nx arguments
         if: startsWith(matrix.tasks, 'build:') || startsWith(matrix.tasks, 'e2e:')
         run: echo "NX_ARGUMENTS=--prod" >> $GITHUB_ENV
@@ -186,12 +187,11 @@ jobs:
         uses: actions/download-artifact@v2
       - name: Merge build artifacts
         run: mkdir -p dist/apps ; for folder in ./${{ env.BUILD_ARTIFACTS }}*/apps/*; do mv $folder ./dist/apps/; done; ls -l dist/*
-      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: npm set token for installing dedicated Node apps dependencies
         run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} --args="--githash=${{ github.sha }}"
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
 
   docker-tag:
     runs-on: ubuntu-latest
@@ -206,11 +206,9 @@ jobs:
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
-      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} --args="--githash=${{ github.sha }} --tag=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
-
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -230,6 +228,5 @@ jobs:
         uses: actions/download-artifact@v2
       - name: Merge build artifacts
         run: mkdir -p dist/apps ; for folder in ./${{ env.BUILD_ARTIFACTS }}*/apps/*; do mv $folder ./dist/apps/; done; ls -l dist/*
-      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
       - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }}
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}

@@ -191,7 +191,7 @@ jobs:
       - name: npm set token for installing dedicated Node apps dependencies
         run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   docker-tag:
     runs-on: ubuntu-latest
@@ -208,7 +208,7 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --tag=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
 
   deploy:
     runs-on: ubuntu-latest

@@ -31,7 +31,6 @@ node_modules/
 .lock-wscript
 .tsdrc
 .typingsrc
-google_credentials.local.json
 secring.gpg
 openpgp*
 
@@ -93,7 +92,7 @@ src/jenkins.gdsl
 v8-compile-cache
 npm-debug.log*
 .docker
-.env
+.local.env
 tags.env
 .DS_Store
 tmp/*

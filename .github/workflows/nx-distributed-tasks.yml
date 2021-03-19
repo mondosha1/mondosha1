@@ -82,7 +82,7 @@ jobs:
     needs: [vars, install-deps]
     env:
       distributedTargets: lint,test,build,e2e
-      distributedChunkSize: 14,12,5,4
+      distributedChunkSize: 14,12,5,2
       dockerTasksChunkSize: 5
       deployTasksChunkSize: 5
     outputs:

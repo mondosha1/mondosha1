@@ -76,7 +76,6 @@ npm_cache_*
 
 # CI files
 .containers
-template-ci
 
 # Tooling local config
 tools/pgp/configs/*

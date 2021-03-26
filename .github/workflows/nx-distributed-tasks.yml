@@ -84,10 +84,12 @@ jobs:
       distributedTargets: lint,test,build,e2e
       distributedChunkSize: 14,12,5,2
       dockerTasksChunkSize: 5
+      itTasksChunkSize: 2
       deployTasksChunkSize: 5
     outputs:
       DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
       DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.value }}
+      IT_TASKS: ${{ steps.IT_TASKS.outputs.value }}
       DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
       DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
     steps:
@@ -104,6 +106,9 @@ jobs:
       - name: Calculate docker build tasks
         id: DOCKER_BUILD_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-build ${{ env.dockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+      - name: Calculate IT tasks
+        id: IT_TASKS
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js it ${{ env.itTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate docker tag tasks
         id: DOCKER_TAG_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-tag ${{ env.dockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
@@ -193,9 +198,26 @@ jobs:
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
-  docker-tag:
+  it:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.calculate-targets.outputs.IT_TASKS) }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+      - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
+      - name: nx ${{ matrix.tasks }}
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
+
+  docker-tag:
+    runs-on: ubuntu-latest
+    needs: [vars, calculate-targets, it]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS) }}

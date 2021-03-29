@@ -97,3 +97,5 @@ tags.env
 tmp/*
 gitcommit.txt
 /apps/api/environments/environment-custom.ts
+localhost.crt
+localhost.key

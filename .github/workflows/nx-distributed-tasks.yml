@@ -82,9 +82,9 @@ jobs:
     needs: [vars, install-deps]
     env:
       distributedTargets: lint,test,build,e2e
-      distributedChunkSize: 14,12,5,2
+      distributedChunkSize: 17,8,1,1
       dockerTasksChunkSize: 5
-      itTasksChunkSize: 2
+      itTasksChunkSize: 1
       deployTasksChunkSize: 5
     outputs:
       DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
@@ -235,7 +235,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
-    needs: [vars, calculate-targets, docker-tag]
+    needs: [vars, calculate-targets, distributed-task]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS) }}

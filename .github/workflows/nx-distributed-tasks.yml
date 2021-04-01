@@ -76,6 +76,8 @@ jobs:
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js format:check $NX_ARGUMENTS
       - name: nx ${{ matrix.target }}
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-lint $NX_ARGUMENTS
+      - name: strict-checks
+        run: node --max-old-space-size=8000 ./node_modules/typescript/bin/tsc -p tsconfig.strict.json
 
   calculate-targets:
     runs-on: ubuntu-latest

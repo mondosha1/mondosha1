@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash/fp'
 
-function toJSON(obj: {}): {} {
+function toJSON(obj: {}): {} | null {
   try {
     return JSON.parse(JSON.stringify(obj))
   } catch {

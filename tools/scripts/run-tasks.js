@@ -11,6 +11,6 @@ const remainingArgs = process.argv
   .map(a => `"${a}"`)
   .join(' ')
 execSync(
-  `node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js run-many --target=${target} --projects=${projects} ${remainingArgs}`,
+  `node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js run-many --target=${target} --projects=${projects} --parallel ${remainingArgs}`,
   { stdio: 'inherit' }
 )

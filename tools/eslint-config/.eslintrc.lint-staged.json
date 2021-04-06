@@ -1,0 +1,15 @@
+{
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "extends": ["@elium/eslint-config/global"],
+      "parserOptions": {
+        "project": ["tsconfig.base.json"]
+      }
+    },
+    {
+      "files": ["*.html"],
+      "extends": ["plugin:@nrwl/nx/angular-template", "@elium/eslint-config/angular-template"]
+    }
+  ]
+}

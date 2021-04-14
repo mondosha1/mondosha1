@@ -201,6 +201,7 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   it:
+    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS)) != ''
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
     strategy:
@@ -218,8 +219,9 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   docker-tag:
+    if: ${{(join(fromJson(needs.calculate-targets.outputs.IT_TASKS)) == '' && always()) || (needs.it.result == 'success' && always())}}
     runs-on: ubuntu-latest
-    needs: [vars, calculate-targets, it]
+    needs: [ vars, calculate-targets, docker-build, it ]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS) }}

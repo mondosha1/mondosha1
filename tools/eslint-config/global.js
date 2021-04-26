@@ -119,10 +119,6 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:extension', 'scope:shared']
           },
           {
-            sourceTag: 'scope:firebase',
-            onlyDependOnLibsWithTags: ['scope:firebase', 'scope:shared']
-          },
-          {
             sourceTag: 'scope:demo',
             onlyDependOnLibsWithTags: ['scope:demo', 'scope:creative-store', 'scope:shared']
           },

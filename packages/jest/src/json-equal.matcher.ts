@@ -8,10 +8,10 @@ function toJSON(obj: {}): {} | null {
   }
 }
 
-function jsonEqual(other: any, value: any): boolean {
-  return isEqual(toJSON(value), toJSON(other))
+export function jsonEqual(expected: any): (received: any) => boolean {
+  return (received: any) => isEqual(toJSON(expected), toJSON(received))
 }
 
 export function toJsonEqual(received: any, expected: any) {
-  return { pass: jsonEqual(expected, received), message: () => `Serialized values aren't equal` }
+  return { pass: jsonEqual(expected)(received), message: () => `Serialized values aren't equal` }
 }

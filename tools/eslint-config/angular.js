@@ -21,7 +21,6 @@ module.exports = {
     '@angular-eslint/no-output-on-prefix': 'off',
     '@angular-eslint/no-output-rename': 'off',
     '@angular-eslint/no-pipe-impure': 'error',
-    '@angular-eslint/use-pipe-decorator': 'error',
     '@angular-eslint/no-conflicting-lifecycle': 'off'
   }
 }

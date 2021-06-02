@@ -3,15 +3,15 @@ module.exports = {
   ...nxPreset,
   globals: {
     'ts-jest': {
-      packageJson: process.env.TS_JEST_PACKAGE_JSON || 'package.json',
-      tsConfig: './tsconfig.spec.json',
       stringifyContentPathRegex: '\\.(html|svg)$',
-      astTransformers: [
-        'jest-preset-angular/build/InlineFilesTransformer',
-        'jest-preset-angular/build/StripStylesTransformer'
-      ]
+      astTransformers: {
+        before: ['jest-preset-angular/build/InlineFilesTransformer', 'jest-preset-angular/build/StripStylesTransformer']
+      },
+      tsconfig: '<rootDir>/tsconfig.spec.json'
     }
   },
+  runInBand: true,
+  detectOpenHandles: true,
   testMatch: ['**/+(*.)+(spec).+(ts|js)?(x)'],
   transform: {
     '^.+\\.(ts|js|html|svg)$': 'ts-jest'
@@ -24,8 +24,8 @@ module.exports = {
   collectCoverage: true,
   coverageReporters: ['cobertura'],
   snapshotSerializers: [
-    'jest-preset-angular/build/AngularNoNgAttributesSnapshotSerializer.js',
-    'jest-preset-angular/build/AngularSnapshotSerializer',
-    'jest-preset-angular/build/HTMLCommentSerializer'
+    'jest-preset-angular/build/serializers/no-ng-attributes',
+    'jest-preset-angular/build/serializers/ng-snapshot',
+    'jest-preset-angular/build/serializers/html-comment'
   ]
 }

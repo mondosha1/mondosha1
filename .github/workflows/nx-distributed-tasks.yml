@@ -11,7 +11,7 @@ env:
   CYPRESS_CACHE: cache-cypress
   CYPRESS_CACHE_FOLDER: cache/Cypress
   DEPENDENCIES_CACHE: cache-node-modules
-  DOCKER_REGISTRY: docker-registry.elium.io:5001
+  DOCKER_REGISTRY: docker-internal.elium.io
   E2E_ARTIFACTS: e2e-artifacts
   TEST_ARTIFACTS: test-artifacts
   NG_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.S3_PROXY_AWS_ACCESS_KEY_ID }}

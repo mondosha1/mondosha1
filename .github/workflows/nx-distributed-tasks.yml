@@ -145,7 +145,7 @@ jobs:
           path: ${{ env.CYPRESS_CACHE_FOLDER }}
           key: ${{ env.CYPRESS_CACHE }}
       - name: Compute Nx arguments
-        if: startsWith(matrix.tasks, 'e2e:')
+        if: startsWith(matrix.tasks, 'build:') || startsWith(matrix.tasks, 'e2e:')
         run: echo "NX_ARGUMENTS=--configuration=production" >> $GITHUB_ENV
       - name: nx ${{ matrix.tasks }}
         if: startsWith(matrix.tasks, 'e2e:') != true

@@ -18,7 +18,6 @@ env:
   NG_DEPLOY_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PROXY_AWS_SECRET_ACCESS_KEY }}
 
 jobs:
-
   vars:
     runs-on: ubuntu-latest
     outputs:
@@ -146,8 +145,8 @@ jobs:
           path: ${{ env.CYPRESS_CACHE_FOLDER }}
           key: ${{ env.CYPRESS_CACHE }}
       - name: Compute Nx arguments
-        if: startsWith(matrix.tasks, 'build:') || startsWith(matrix.tasks, 'e2e:')
-        run: echo "NX_ARGUMENTS=--prod" >> $GITHUB_ENV
+        if: startsWith(matrix.tasks, 'e2e:')
+        run: echo "NX_ARGUMENTS=--configuration=production" >> $GITHUB_ENV
       - name: nx ${{ matrix.tasks }}
         if: startsWith(matrix.tasks, 'e2e:') != true
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} $NX_ARGUMENTS
@@ -221,7 +220,7 @@ jobs:
   docker-tag:
     if: ${{(join(fromJson(needs.calculate-targets.outputs.IT_TASKS)) == '' && always()) || (needs.it.result == 'success' && always())}}
     runs-on: ubuntu-latest
-    needs: [ vars, calculate-targets, docker-build, it ]
+    needs: [vars, calculate-targets, docker-build, it]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS) }}

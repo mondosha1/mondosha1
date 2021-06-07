@@ -1,2 +1,3 @@
 dist
 **/*.graphql
+tools/generators/bootstrap-helm-chart-files/files/**/*.yaml

@@ -116,6 +116,26 @@ jobs:
       - name: Calculate docker tag tasks
         id: DEPLOY_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js deploy ${{ env.deployTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+      - name: Display calculated results
+        run: |
+          echo "--- DISTRIBUTED_TARGETS ---"
+          echo "${{ steps.DISTRIBUTED_TARGETS.outputs.value }}"
+          echo ""
+          echo ""
+          echo "--- DOCKER_BUILD_TASKS ---"
+          echo "${{ steps.DOCKER_BUILD_TASKS.outputs.value }}"
+          echo ""
+          echo ""
+          echo "--- IT_TASKS ---"
+          echo "${{ steps.IT_TASKS.outputs.value }}"
+          echo ""
+          echo ""
+          echo "--- DOCKER_TAG_TASKS ---"
+          echo "${{ steps.DOCKER_TAG_TASKS.outputs.value }}"
+          echo ""
+          echo ""
+          echo "--- DEPLOY_TASKS ---"
+          echo "${{ steps.DEPLOY_TASKS.outputs.value }}"
 
   distributed-task:
     runs-on: ubuntu-latest
@@ -200,7 +220,7 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   it:
-    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS)) != ''
+    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) != ''
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
     strategy:
@@ -218,7 +238,7 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   docker-tag:
-    if: ${{(join(fromJson(needs.calculate-targets.outputs.IT_TASKS)) == '' && always()) || (needs.it.result == 'success' && always())}}
+    if: ${{(join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' && always()) || (needs.it.result == 'success' && always())}}
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build, it]
     strategy:

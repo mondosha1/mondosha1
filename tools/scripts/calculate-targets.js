@@ -1,4 +1,3 @@
-// tslint:disable
 // eslint:disable
 const exec = require('child_process').exec
 
@@ -7,8 +6,11 @@ const chunkSizeArg = process.argv[3]
 const headRef = process.argv[4]
 const baseRef = process.argv[5]
 const nxArgs = headRef !== baseRef ? ` --head=origin/${headRef} --base=origin/${baseRef}` : '--all'
+const onlyAppsTargets = ['build']
 
-;(async function main() {
+main()
+
+async function main() {
   const targets = targetsArg.split(',')
 
   const chunkSize = chunkSizeArg.split(',').map(Number)
@@ -24,21 +26,59 @@ const nxArgs = headRef !== baseRef ? ` --head=origin/${headRef} --base=origin/${
   )
   const allTasks = await Promise.all(tasksPerTarget)
   console.log(JSON.stringify({ tasks: allTasks.flat() }))
-})()
+}
 
 async function getTasksPerTarget(target, chunkSize, nxArgs) {
-  const printAffectedCmd = (await execAsync(
-    `node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js print-affected --target=${target} --select=tasks.target.project ${nxArgs}`
-  )).trim('\n')
+  const printAffectedCmd = JSON.parse(
+    await execAsync(
+      `node --max-old-space-size=6000 ./node_modules/@nrwl/cli/bin/nx.js print-affected --target=${target} ${nxArgs}`
+    )
+  )
 
-  return printAffectedCmd
-    ? printAffectedCmd
-        .split(',')
-        .map(task => task.trim())
-        .filter(task => task !== '')
-        .reduce((res, task, i, tasks) => [...res, ...(i % chunkSize ? [] : [tasks.slice(i, i + chunkSize)])], [])
-        .reduce((res, tasksChunk) => [...res, `${target}:${tasksChunk}`], [])
-    : []
+  const affectedApps = (await execAsync(
+    `node --max-old-space-size=6000 ./node_modules/@nrwl/cli/bin/nx.js affected:apps --plain ${nxArgs}`
+  )).split(' ')
+
+  const sortedTasks = getSortedTasks(printAffectedCmd)
+
+  return sortedTasks
+    .filter(project => !onlyAppsTargets.includes(target) || affectedApps.includes(project))
+    .reduce((res, task, i, tasks) => [...res, ...(i % chunkSize ? [] : [tasks.slice(i, i + chunkSize)])], [])
+    .reduce((res, tasksChunk) => [...res, `${target}:${tasksChunk}`], [])
+}
+
+function getSortedTasks(printAffectedCmd) {
+  if (!printAffectedCmd) {
+    return []
+  }
+
+  const targetProjects = printAffectedCmd.tasks.map(task => task.target.project)
+
+  const depsTree = Object.fromEntries(
+    Object.entries(printAffectedCmd.projectGraph.dependencies)
+      .filter(([key]) => !key.startsWith('npm'))
+      .map(([key, deps]) => [
+        key,
+        deps
+          .map(({ target }) => target)
+          .filter(target => !target.startsWith('npm'))
+          .sort()
+      ])
+  )
+
+  return [...new Set(Object.entries(depsTree).flat(2))]
+    .map(project => [project, getDepth(project, depsTree)])
+    .filter(([project]) => targetProjects.includes(project))
+    .sort(([, depthA], [, depthB]) => depthA - depthB)
+    .map(([project]) => project)
+}
+
+function getDepth(project, tree, depth = []) {
+  return tree[project]
+    ? tree[project]
+        .filter(dep => !depth.includes(dep))
+        .reduce((max, dep) => Math.max(max, getDepth(dep, tree, [...depth, dep])), depth.length)
+    : depth.length
 }
 
 function execAsync(cmd) {

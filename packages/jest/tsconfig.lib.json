@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "es2017",
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSources": true
+  },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "src/test-setup.ts", "**/*.spec.ts"]
 }

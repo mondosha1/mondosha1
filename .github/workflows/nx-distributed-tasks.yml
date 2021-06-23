@@ -6,6 +6,10 @@ on:
       - master
   pull_request:
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: ${{ github.head_ref != 'master' }}
+
 env:
   BUILD_ARTIFACTS: build-artifacts
   CYPRESS_CACHE: cache-cypress
@@ -82,13 +86,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, install-deps]
     env:
-      distributedTargets: lint,test,build,e2e
-      distributedChunkSize: 17,8,1,1
+      distributedTargets: lint,test
+      distributedChunkSize: 17,8
+      buildTasksChunkSize: 1
+      e2eTasksChunkSize: 1
       dockerTasksChunkSize: 5
       itTasksChunkSize: 1
       deployTasksChunkSize: 5
     outputs:
       DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
+      BUILD_TASKS: ${{ steps.BUILD_TASKS.outputs.value }}
+      E2E_TASKS: ${{ steps.E2E_TASKS.outputs.value }}
       DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.value }}
       IT_TASKS: ${{ steps.IT_TASKS.outputs.value }}
       DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
@@ -104,6 +112,12 @@ jobs:
       - name: Calculate distributed targets
         id: DISTRIBUTED_TARGETS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js ${{ env.distributedTargets }} ${{ env.distributedChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+      - name: Calculate build targets
+        id: BUILD_TASKS
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+      - name: Calculate e2e targets
+        id: E2E_TASKS
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e ${{ env.e2eTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate docker build tasks
         id: DOCKER_BUILD_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-build ${{ env.dockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
@@ -120,6 +134,14 @@ jobs:
         run: |
           echo "--- DISTRIBUTED_TARGETS ---"
           echo "${{ steps.DISTRIBUTED_TARGETS.outputs.value }}"
+          echo ""
+          echo ""
+          echo "--- BUILD_TASKS ---"
+          echo "${{ steps.BUILD_TASKS.outputs.value }}"
+          echo ""
+          echo ""
+          echo "--- E2E_TASKS ---"
+          echo "${{ steps.E2E_TASKS.outputs.value }}"
           echo ""
           echo ""
           echo "--- DOCKER_BUILD_TASKS ---"
@@ -155,26 +177,8 @@ jobs:
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
-      - name: npm set token
-        if: startsWith(matrix.tasks, 'e2e:')
-        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
-      - name: Cache Cypress
-        uses: actions/cache@v2
-        if: startsWith(matrix.tasks, 'e2e:')
-        with:
-          path: ${{ env.CYPRESS_CACHE_FOLDER }}
-          key: ${{ env.CYPRESS_CACHE }}
-      - name: Compute Nx arguments
-        if: startsWith(matrix.tasks, 'build:') || startsWith(matrix.tasks, 'e2e:')
-        run: echo "NX_ARGUMENTS=--configuration=production" >> $GITHUB_ENV
       - name: nx ${{ matrix.tasks }}
-        if: startsWith(matrix.tasks, 'e2e:') != true
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} $NX_ARGUMENTS
-      - name: nx ${{ matrix.tasks }}
-        if: startsWith(matrix.tasks, 'e2e:')
-        uses: cypress-io/github-action@v2
-        with:
-          command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} $NX_ARGUMENTS
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
       - name: Upload test artifacts
         if: startsWith(matrix.tasks, 'test:')
         uses: actions/upload-artifact@v2.2.2
@@ -183,14 +187,59 @@ jobs:
           path: |
             report
             coverage
-      - name: Upload build artifacts
-        if: startsWith(matrix.tasks, 'build:')
-        uses: actions/upload-artifact@v2.2.2
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [vars, calculate-targets]
+    timeout-minutes: 60
+    strategy:
+      matrix: ${{ fromJson(needs.calculate-targets.outputs.BUILD_TASKS) }}
+      fail-fast: false
+    steps:
+      - id: TASK_HASH
+        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')"
+      - id: TASK_PREFIX
+        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')"
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
         with:
-          name: ${{ env.BUILD_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
-          path: dist
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+      - name: nx ${{ matrix.tasks }}
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [vars, calculate-targets]
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_TASKS) }}
+    steps:
+      - id: TASK_HASH
+        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')"
+      - id: TASK_PREFIX
+        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')"
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+      - name: npm set token
+        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+      - name: Cache Cypress
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CYPRESS_CACHE_FOLDER }}
+          key: ${{ env.CYPRESS_CACHE }}
+      - name: nx ${{ matrix.tasks }}
+        uses: cypress-io/github-action@v2
+        with:
+          command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
       - name: Upload e2e artifacts
-        if: startsWith(matrix.tasks, 'e2e:') && always()
+        if: always()
         uses: actions/upload-artifact@v2.2.2
         with:
           name: ${{ env.E2E_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
@@ -198,7 +247,7 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
-    needs: [vars, precheck, calculate-targets, distributed-task]
+    needs: [vars, precheck, calculate-targets, build, e2e]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS) }}
@@ -209,10 +258,6 @@ jobs:
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
-      - name: Download all artifacts
-        uses: actions/download-artifact@v2
-      - name: Merge build artifacts
-        run: mkdir -p dist/apps ; for folder in ./${{ env.BUILD_ARTIFACTS }}*/apps/*; do mv $folder ./dist/apps/; done; ls -l dist/*
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: npm set token for installing dedicated Node apps dependencies
         run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc

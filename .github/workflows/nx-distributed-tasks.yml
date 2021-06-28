@@ -18,8 +18,6 @@ env:
   DOCKER_REGISTRY: docker-internal.elium.io
   E2E_ARTIFACTS: e2e-artifacts
   TEST_ARTIFACTS: test-artifacts
-  NG_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.S3_PROXY_AWS_ACCESS_KEY_ID }}
-  NG_DEPLOY_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PROXY_AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   vars:
@@ -92,7 +90,6 @@ jobs:
       e2eTasksChunkSize: 1
       dockerTasksChunkSize: 5
       itTasksChunkSize: 1
-      deployTasksChunkSize: 5
     outputs:
       DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
       BUILD_TASKS: ${{ steps.BUILD_TASKS.outputs.value }}
@@ -100,7 +97,6 @@ jobs:
       DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.value }}
       IT_TASKS: ${{ steps.IT_TASKS.outputs.value }}
       DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
-      DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
     steps:
       - uses: actions/checkout@v2
       - name: Cache node modules
@@ -127,9 +123,6 @@ jobs:
       - name: Calculate docker tag tasks
         id: DOCKER_TAG_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-tag ${{ env.dockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
-      - name: Calculate docker tag tasks
-        id: DEPLOY_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js deploy ${{ env.deployTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Display calculated results
         run: |
           echo "--- DISTRIBUTED_TARGETS ---"
@@ -154,10 +147,6 @@ jobs:
           echo ""
           echo "--- DOCKER_TAG_TASKS ---"
           echo "${{ steps.DOCKER_TAG_TASKS.outputs.value }}"
-          echo ""
-          echo ""
-          echo "--- DEPLOY_TASKS ---"
-          echo "${{ steps.DEPLOY_TASKS.outputs.value }}"
 
   distributed-task:
     runs-on: ubuntu-latest
@@ -299,24 +288,3 @@ jobs:
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --tag=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
-
-  deploy:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
-    needs: [vars, calculate-targets, distributed-task]
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS) }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Cache node modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
-      - name: Download all artifacts
-        uses: actions/download-artifact@v2
-      - name: Merge build artifacts
-        run: mkdir -p dist/apps ; for folder in ./${{ env.BUILD_ARTIFACTS }}*/apps/*; do mv $folder ./dist/apps/; done; ls -l dist/*
-      - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}

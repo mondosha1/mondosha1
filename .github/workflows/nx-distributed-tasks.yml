@@ -68,7 +68,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('yarn.lock') }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
       - name: Compute Nx arguments
         run: echo "NX_ARGUMENTS=--base=origin/${{ needs.vars.outputs.GITHUB_BASE_REF }}" >> $GITHUB_ENV

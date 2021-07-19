@@ -4,9 +4,6 @@
     {
       "files": ["*.ts"],
       "extends": ["@mondosha1/eslint-config/global-next"],
-      "parserOptions": {
-        "project": ["packages/jest/tsconfig.*?.json"]
-      },
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -21,7 +18,7 @@
               },
               {
                 "name": "lodash/fp",
-                "importNames": ["tap", "differenceBy"]
+                "importNames": ["differenceBy", "get", "tap"]
               },
               {
                 "name": "@ngrx/store",

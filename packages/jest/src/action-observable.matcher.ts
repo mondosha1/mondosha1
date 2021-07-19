@@ -1,15 +1,14 @@
 /* eslint-disable rxjs/no-internal */
-import { getTestScheduler } from 'jasmine-marbles'
-import { TestObservable } from 'jasmine-marbles/src/test-observables'
+import { Scheduler } from 'jest-marbles'
 import { equals, mapValues, omit } from 'lodash/fp'
 import { Notification } from 'rxjs'
 import { TestMessage } from 'rxjs/internal/testing/TestMessage'
 import { TestScheduler } from 'rxjs/testing'
 
-export function actionObservable<T>(expected$: TestObservable) {
-  return (received$: TestObservable) => {
+export function actionObservable<T>(expected$) {
+  return received$ => {
     const results: TestMessage[] = []
-    const scheduler = getTestScheduler()
+    const scheduler = Scheduler.get()
 
     scheduler.schedule(() => {
       received$.subscribe(
@@ -30,6 +29,6 @@ export function actionObservable<T>(expected$: TestObservable) {
   }
 }
 
-export function toBeActionObservable<T>(received$: TestObservable, expected$: TestObservable) {
+export function toBeActionObservable<T>(received$, expected$) {
   return { pass: actionObservable(expected$)(received$), message: () => `Action and resultAction aren't equals` }
 }

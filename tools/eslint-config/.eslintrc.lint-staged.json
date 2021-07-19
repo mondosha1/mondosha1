@@ -2,10 +2,7 @@
   "overrides": [
     {
       "files": ["*.ts"],
-      "extends": ["@elium/eslint-config/global"],
-      "parserOptions": {
-        "project": ["tsconfig.base.json"]
-      }
+      "extends": ["@elium/eslint-config/global"]
     },
     {
       "files": ["*.html"],

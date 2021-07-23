@@ -37,7 +37,9 @@ async function getTasksPerTarget(target, chunkSize, nxArgs) {
 
   const affectedApps = (await execAsync(
     `node --max-old-space-size=6000 ./node_modules/@nrwl/cli/bin/nx.js affected:apps --plain ${nxArgs}`
-  )).split(' ')
+  ))
+    .trim('\n')
+    .split(' ')
 
   const sortedTasks = getSortedTasks(printAffectedCmd)
 

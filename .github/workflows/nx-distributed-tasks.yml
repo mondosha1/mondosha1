@@ -199,6 +199,7 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
 
   e2e:
+    if: join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) != ''
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
@@ -236,7 +237,7 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
-    needs: [vars, precheck, calculate-targets, build, e2e]
+    needs: [vars, precheck, calculate-targets, build]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS) }}
@@ -272,9 +273,9 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   docker-tag:
-    if: ${{(join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' && always()) || (needs.it.result == 'success' && always())}}
+    if: ${{ (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && always() }}
     runs-on: ubuntu-latest
-    needs: [vars, calculate-targets, docker-build, it]
+    needs: [vars, calculate-targets, docker-build, e2e, it]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS) }}

@@ -95,6 +95,10 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:accounts', 'scope:shared']
           },
           {
+            sourceTag: 'scope:ads-manager',
+            onlyDependOnLibsWithTags: ['scope:accounts', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:api',
             onlyDependOnLibsWithTags: ['scope:api', 'scope:shared']
           },
@@ -149,6 +153,10 @@ module.exports = {
           {
             sourceTag: 'scope:website',
             onlyDependOnLibsWithTags: ['scope:website', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:whatsnew',
+            onlyDependOnLibsWithTags: ['scope:whatsnew', 'scope:shared']
           },
           {
             sourceTag: 'type:app',

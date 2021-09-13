@@ -315,9 +315,5 @@ jobs:
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
-      - name: Download all artifacts
-        uses: actions/download-artifact@v2
-      - name: Merge build artifacts
-        run: mkdir -p dist/apps ; for folder in ./${{ env.BUILD_ARTIFACTS }}*/apps/*; do mv $folder ./dist/apps/; done; ls -l dist/*
       - name: nx deploy
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}

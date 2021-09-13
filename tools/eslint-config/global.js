@@ -96,7 +96,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:ads-manager',
-            onlyDependOnLibsWithTags: ['scope:accounts', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:ads-manager', 'scope:accounts', 'scope:shared']
           },
           {
             sourceTag: 'scope:api',

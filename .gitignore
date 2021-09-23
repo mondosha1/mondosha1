@@ -96,6 +96,6 @@ tags.env
 .DS_Store
 tmp/*
 gitcommit.txt
-/apps/api/environments/environment-custom.ts
+/apps/api-platform/environments/environment-custom.ts
 localhost.crt
 localhost.key

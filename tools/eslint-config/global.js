@@ -99,8 +99,8 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:ads-manager', 'scope:accounts', 'scope:shared']
           },
           {
-            sourceTag: 'scope:api',
-            onlyDependOnLibsWithTags: ['scope:api', 'scope:shared']
+            sourceTag: 'scope:api-platform',
+            onlyDependOnLibsWithTags: ['scope:api-platform', 'scope:shared']
           },
           {
             sourceTag: 'scope:benten-doc',

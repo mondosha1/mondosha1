@@ -115,8 +115,8 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:director', 'scope:shared']
           },
           {
-            sourceTag: 'scope:eliauth',
-            onlyDependOnLibsWithTags: ['scope:eliauth', 'scope:shared']
+            sourceTag: 'scope:api-eliauth',
+            onlyDependOnLibsWithTags: ['scope:api-eliauth', 'scope:shared']
           },
           {
             sourceTag: 'scope:extension',

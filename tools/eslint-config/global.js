@@ -4,6 +4,7 @@ module.exports = {
   rules: {
     'arrow-parens': ['off', 'always'],
     'brace-style': ['off', 'off'],
+    curly: 'error',
     'eol-last': 'off',
     eqeqeq: ['error', 'always'],
     'new-parens': 'off',
@@ -20,6 +21,7 @@ module.exports = {
     'no-empty-character-class': 'error',
     'no-ex-assign': 'error',
     'no-extra-boolean-cast': 'error',
+    'no-implicit-coercion': 'error',
     'no-inner-declarations': 'error',
     'no-shadow': 'off',
     'no-underscore-dangle': 'off',

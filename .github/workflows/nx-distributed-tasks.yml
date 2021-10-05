@@ -242,6 +242,7 @@ jobs:
       - name: nx ${{ matrix.tasks }}
         uses: cypress-io/github-action@v2
         with:
+          install: false
           command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
       - name: Upload e2e artifacts
         if: always()

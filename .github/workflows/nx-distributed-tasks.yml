@@ -5,6 +5,16 @@ on:
     branches:
       - master
   pull_request:
+  workflow_dispatch:
+    inputs:
+      head:
+        description: 'Head'
+        required: true
+        default: ''
+      base:
+        description: 'Base'
+        required: true
+        default: ''
 
 concurrency:
   group: ${{ github.ref }}
@@ -31,11 +41,11 @@ jobs:
       GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
     steps:
       - id: GITHUB_HEAD_REF
-        run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}})"
+        run: echo "::set-output name=value::$(echo ${github.event.inputs.head:-${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}})"
       - id: GITHUB_HEAD_SLUG
         run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
       - id: GITHUB_BASE_REF
-        run: echo "::set-output name=value::$(echo ${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}})"
+        run: echo "::set-output name=value::$(echo ${github.event.inputs.base:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}})"
       - id: GITHUB_BASE_SLUG
         run: echo "::set-output name=value::$(echo ${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
 

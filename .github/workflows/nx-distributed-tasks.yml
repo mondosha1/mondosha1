@@ -7,14 +7,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      head:
-        description: 'Head'
+      rebuild_all:
+        description: 'Rebuild all? (Yes/No)'
         required: true
-        default: ''
-      base:
-        description: 'Base'
-        required: true
-        default: ''
+        default: 'No'
 
 concurrency:
   group: ${{ github.ref }}
@@ -40,14 +36,30 @@ jobs:
       GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
       GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
     steps:
+      - uses: nrwl/last-successful-commit-action@v1
+        id: last_successful_commit
+        with:
+          branch: 'master'
+          workflow_id: 'nx-distributed-tasks.yml'
+          github_token: ${{ secrets.NX_GITHUB_SECRETS }}
       - id: GITHUB_HEAD_REF
-        run: echo "::set-output name=value::$(echo ${github.event.inputs.head:-${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}})"
+        run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}})"
       - id: GITHUB_HEAD_SLUG
         run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
       - id: GITHUB_BASE_REF
-        run: echo "::set-output name=value::$(echo ${github.event.inputs.base:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}})"
+        run: |
+          REBUILD_ALL=$(echo "${{ github.event.inputs.rebuild_all }}" | awk '{print tolower($0)}')
+          REBUILD_ALL_BASE_REF=$(if [[ "$REBUILD_ALL" == "yes" ]] || [[ "$REBUILD_ALL" == "y" ]]; then echo ${GITHUB_REF#refs/heads/}; fi)
+          LAST_SUCCESSFUL_COMMIT_COMMIT_HASH="${{ steps.last_successful_commit.outputs.commit_hash }}"
+          echo "::set-output name=value::$(echo ${REBUILD_ALL_BASE_REF:-${LAST_SUCCESSFUL_COMMIT_COMMIT_HASH:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}}})"
       - id: GITHUB_BASE_SLUG
         run: echo "::set-output name=value::$(echo ${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
+      - name: Display vars
+        run: |
+          echo "GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}"
+          echo "GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}"
+          echo "GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}"
+          echo "GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}"
 
   install-deps:
     runs-on: ubuntu-latest

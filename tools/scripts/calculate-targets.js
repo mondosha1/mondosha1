@@ -3,9 +3,9 @@ const exec = require('child_process').exec
 
 const targetsArg = process.argv[2]
 const chunkSizeArg = process.argv[3]
-const headRef = process.argv[4]
-const baseRef = process.argv[5]
-const nxArgs = headRef !== baseRef ? ` --head=origin/${headRef} --base=origin/${baseRef}` : '--all'
+const headRef = isGitHash(process.argv[4]) ? process.argv[4] : `origin/${process.argv[4]}`
+const baseRef = isGitHash(process.argv[5]) ? process.argv[5] : `origin/${process.argv[5]}`
+const nxArgs = headRef !== baseRef ? ` --head=${headRef} --base=${baseRef}` : '--all'
 const onlyAppsTargets = ['build']
 
 main()
@@ -93,4 +93,8 @@ function execAsync(cmd) {
       }
     })
   })
+}
+
+function isGitHash(hash) {
+  return /^[0-9a-f]{7,40}$/i.test(hash)
 }

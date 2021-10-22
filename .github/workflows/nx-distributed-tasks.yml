@@ -88,6 +88,8 @@ jobs:
     needs: [vars, install-deps]
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Cache node modules
         uses: actions/cache@v2
         with:
@@ -95,7 +97,6 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - name: copy eslint-config
         run: cp -R tools/eslint-config ./node_modules/@elium
-      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
       - name: Compute Nx arguments
         run: echo "NX_ARGUMENTS=--base=origin/${{ needs.vars.outputs.GITHUB_BASE_REF }}" >> $GITHUB_ENV
         if: needs.vars.outputs.GITHUB_HEAD_REF != needs.vars.outputs.GITHUB_BASE_REF
@@ -127,6 +128,8 @@ jobs:
       DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Cache node modules
         uses: actions/cache@v2
         with:
@@ -134,7 +137,6 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - name: copy eslint-config
         run: cp -R tools/eslint-config ./node_modules/@elium
-      - run: git fetch --no-tags --prune origin ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
       - name: Calculate distributed targets
         id: DISTRIBUTED_TARGETS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js ${{ env.distributedTargets }} ${{ env.distributedChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"

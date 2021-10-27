@@ -98,7 +98,9 @@ jobs:
       - name: copy eslint-config
         run: cp -R tools/eslint-config ./node_modules/@elium
       - name: Compute Nx arguments
-        run: echo "NX_ARGUMENTS=--base=origin/${{ needs.vars.outputs.GITHUB_BASE_REF }}" >> $GITHUB_ENV
+        run: |
+          BASE_REF_WITH_PREFIX=$(if [[ ! "${{ needs.vars.outputs.GITHUB_BASE_REF }}" =~ ^[0-9a-f]{7,40}$ ]]; then echo "origin/"; fi)${{ needs.vars.outputs.GITHUB_BASE_REF }}
+          echo "NX_ARGUMENTS=--base=$BASE_REF_WITH_PREFIX" >> $GITHUB_ENV
         if: needs.vars.outputs.GITHUB_HEAD_REF != needs.vars.outputs.GITHUB_BASE_REF
       - name: nx ${{ matrix.target }}
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js format:check $NX_ARGUMENTS

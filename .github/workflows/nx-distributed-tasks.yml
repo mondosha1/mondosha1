@@ -122,12 +122,19 @@ jobs:
       deployTasksChunkSize: 5
     outputs:
       DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
+      HAS_DISTRIBUTED_TARGETS: ${{ join(fromJson(steps.DISTRIBUTED_TARGETS.outputs.value).tasks) == '' }}
       BUILD_TASKS: ${{ steps.BUILD_TASKS.outputs.value }}
+      HAS_BUILD_TASKS: ${{ join(fromJson(steps.BUILD_TASKS.outputs.value).tasks) == '' }}
       E2E_TASKS: ${{ steps.E2E_TASKS.outputs.value }}
+      HAS_E2E_TASKS: ${{ join(fromJson(steps.E2E_TASKS.outputs.value).tasks) == '' }}
       DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.value }}
+      HAS_DOCKER_BUILD_TASKS: ${{ join(fromJson(steps.DOCKER_BUILD_TASKS.outputs.value).tasks) == '' }}
       IT_TASKS: ${{ steps.IT_TASKS.outputs.value }}
+      HAS_IT_TASKS: ${{ join(fromJson(steps.IT_TASKS.outputs.value).tasks) == '' }}
       DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
+      HAS_DOCKER_TAG_TASKS: ${{ join(fromJson(steps.DOCKER_TAG_TASKS.outputs.value).tasks) == '' }}
       DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
+      HAS_DEPLOY_TASKS: ${{ join(fromJson(steps.DEPLOY_TASKS.outputs.value).tasks) == '' }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -193,6 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
+    if: ${{ needs.calculate-targets.outputs.HAS_DISTRIBUTED_TARGETS }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DISTRIBUTED_TARGETS) }}
@@ -222,6 +230,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
+    if: ${{ needs.calculate-targets.outputs.HAS_BUILD_TASKS }}
     strategy:
       matrix: ${{ fromJson(needs.calculate-targets.outputs.BUILD_TASKS) }}
       fail-fast: false
@@ -240,10 +249,10 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
 
   e2e:
-    if: join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) != ''
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
+    if: ${{ needs.calculate-targets.outputs.HAS_E2E_TASKS }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_TASKS) }}
@@ -280,6 +289,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     needs: [vars, precheck, calculate-targets, build]
+    if: ${{ needs.calculate-targets.outputs.HAS_DOCKER_BUILD_TASKS }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS) }}
@@ -297,9 +307,9 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   it:
-    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) != ''
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
+    if: ${{ needs.calculate-targets.outputs.HAS_IT_TASKS }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.IT_TASKS) }}
@@ -315,7 +325,7 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   docker-tag:
-    if: ${{ (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && always() }}
+    if: ${{ (!needs.calculate-targets.outputs.HAS_IT_TASKS || needs.it.result == 'success') && (!needs.calculate-targets.outputs.HAS_E2E_TASKS || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS && always() }}
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build, e2e, it]
     strategy:
@@ -334,7 +344,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: ${{ github.ref == 'refs/heads/master' && (!needs.calculate-targets.outputs.HAS_IT_TASKS || needs.it.result == 'success') && (!needs.calculate-targets.outputs.HAS_E2E_TASKS || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DEPLOY_TASKS && always() }}
     needs: [vars, calculate-targets, build]
     strategy:
       fail-fast: false
@@ -348,3 +358,10 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - name: nx deploy
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
+
+  success:
+    runs-on: ubuntu-latest
+    if: ${{ (!needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS || needs.docker-tag.result == 'success') && (github.ref != 'refs/heads/master' || !needs.calculate-targets.outputs.HAS_DEPLOY_TASKS || needs.deploy.result == 'success') && always() }}
+    needs: [vars, docker-tag, deploy]
+    steps:
+      - run: echo "Workflow succeeded"

@@ -20,7 +20,7 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'html', 'svg', 'json'],
   testPathIgnorePatterns: ['node_modules'],
   transformIgnorePatterns: ['node_modules'],
-  reporters: ['jest-silent-reporter', 'jest-junit'],
+  reporters: ['jest-progress-bar-reporter', 'jest-junit'],
   collectCoverage: true,
   coverageReporters: ['cobertura'],
   snapshotSerializers: [

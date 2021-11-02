@@ -4,7 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   passWithNoTests: true,
   reporters: [
-    'jest-silent-reporter',
+    'jest-progress-bar-reporter',
     [
       'jest-junit',
       {

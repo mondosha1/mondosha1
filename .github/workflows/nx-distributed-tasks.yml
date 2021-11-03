@@ -122,19 +122,19 @@ jobs:
       deployTasksChunkSize: 5
     outputs:
       DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
-      HAS_DISTRIBUTED_TARGETS: ${{ join(fromJson(steps.DISTRIBUTED_TARGETS.outputs.value).tasks) == '' }}
+      HAS_DISTRIBUTED_TARGETS: ${{ join(fromJson(steps.DISTRIBUTED_TARGETS.outputs.value).tasks) != '' }}
       BUILD_TASKS: ${{ steps.BUILD_TASKS.outputs.value }}
-      HAS_BUILD_TASKS: ${{ join(fromJson(steps.BUILD_TASKS.outputs.value).tasks) == '' }}
+      HAS_BUILD_TASKS: ${{ join(fromJson(steps.BUILD_TASKS.outputs.value).tasks) != '' }}
       E2E_TASKS: ${{ steps.E2E_TASKS.outputs.value }}
-      HAS_E2E_TASKS: ${{ join(fromJson(steps.E2E_TASKS.outputs.value).tasks) == '' }}
+      HAS_E2E_TASKS: ${{ join(fromJson(steps.E2E_TASKS.outputs.value).tasks) != '' }}
       DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.value }}
-      HAS_DOCKER_BUILD_TASKS: ${{ join(fromJson(steps.DOCKER_BUILD_TASKS.outputs.value).tasks) == '' }}
+      HAS_DOCKER_BUILD_TASKS: ${{ join(fromJson(steps.DOCKER_BUILD_TASKS.outputs.value).tasks) != '' }}
       IT_TASKS: ${{ steps.IT_TASKS.outputs.value }}
-      HAS_IT_TASKS: ${{ join(fromJson(steps.IT_TASKS.outputs.value).tasks) == '' }}
+      HAS_IT_TASKS: ${{ join(fromJson(steps.IT_TASKS.outputs.value).tasks) != '' }}
       DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
-      HAS_DOCKER_TAG_TASKS: ${{ join(fromJson(steps.DOCKER_TAG_TASKS.outputs.value).tasks) == '' }}
+      HAS_DOCKER_TAG_TASKS: ${{ join(fromJson(steps.DOCKER_TAG_TASKS.outputs.value).tasks) != '' }}
       DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
-      HAS_DEPLOY_TASKS: ${{ join(fromJson(steps.DEPLOY_TASKS.outputs.value).tasks) == '' }}
+      HAS_DEPLOY_TASKS: ${{ join(fromJson(steps.DEPLOY_TASKS.outputs.value).tasks) != '' }}
     steps:
       - uses: actions/checkout@v2
         with:

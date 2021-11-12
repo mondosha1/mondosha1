@@ -200,7 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: ${{ needs.calculate-targets.outputs.HAS_DISTRIBUTED_TARGETS }}
+    if: ${{ needs.calculate-targets.outputs.HAS_DISTRIBUTED_TARGETS == 'true' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DISTRIBUTED_TARGETS) }}
@@ -230,7 +230,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: ${{ needs.calculate-targets.outputs.HAS_BUILD_TASKS }}
+    if: ${{ needs.calculate-targets.outputs.HAS_BUILD_TASKS == 'true' }}
     strategy:
       matrix: ${{ fromJson(needs.calculate-targets.outputs.BUILD_TASKS) }}
       fail-fast: false
@@ -252,7 +252,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: ${{ needs.calculate-targets.outputs.HAS_E2E_TASKS }}
+    if: ${{ needs.calculate-targets.outputs.HAS_E2E_TASKS == 'true' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_TASKS) }}
@@ -289,7 +289,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     needs: [vars, precheck, calculate-targets, build]
-    if: ${{ needs.calculate-targets.outputs.HAS_DOCKER_BUILD_TASKS }}
+    if: ${{ needs.calculate-targets.outputs.HAS_DOCKER_BUILD_TASKS == 'true' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS) }}
@@ -309,7 +309,7 @@ jobs:
   it:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: ${{ needs.calculate-targets.outputs.HAS_IT_TASKS }}
+    if: ${{ needs.calculate-targets.outputs.HAS_IT_TASKS == 'true' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.IT_TASKS) }}
@@ -325,7 +325,7 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   docker-tag:
-    if: ${{ (!needs.calculate-targets.outputs.HAS_IT_TASKS || needs.it.result == 'success') && (!needs.calculate-targets.outputs.HAS_E2E_TASKS || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS && always() }}
+    if: ${{ (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'true' && always() }}
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build, e2e, it]
     strategy:
@@ -344,7 +344,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/master' && (!needs.calculate-targets.outputs.HAS_IT_TASKS || needs.it.result == 'success') && (!needs.calculate-targets.outputs.HAS_E2E_TASKS || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DEPLOY_TASKS && always() }}
+    if: ${{ github.ref == 'refs/heads/master' && (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'true' && always() }}
     needs: [vars, calculate-targets, build]
     strategy:
       fail-fast: false
@@ -361,7 +361,7 @@ jobs:
 
   success:
     runs-on: ubuntu-latest
-    if: ${{ (!needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS || needs.docker-tag.result == 'success') && (github.ref != 'refs/heads/master' || !needs.calculate-targets.outputs.HAS_DEPLOY_TASKS || needs.deploy.result == 'success') && always() }}
+    if: ${{ (needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'false' || needs.docker-tag.result == 'success') && (github.ref != 'refs/heads/master' || needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'false' || needs.deploy.result == 'success') && always() }}
     needs: [vars, docker-tag, deploy]
     steps:
       - run: echo "Workflow succeeded"

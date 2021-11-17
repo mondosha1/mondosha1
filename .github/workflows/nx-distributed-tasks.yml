@@ -322,7 +322,7 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --branch=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
 
   docker-tag:
     if: ${{ (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'true' && always() }}

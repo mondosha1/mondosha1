@@ -343,7 +343,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/master' && (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'true' && always() }}
-    needs: [vars, calculate-targets, build]
+    needs: [vars, calculate-targets, it, e2e]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS) }}

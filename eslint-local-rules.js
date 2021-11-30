@@ -11,9 +11,9 @@ module.exports = {
       },
       schema: []
     },
-    create: function(context) {
+    create: function (context) {
       return {
-        Program: function(node) {
+        Program: function (node) {
           context.report({
             node,
             message:

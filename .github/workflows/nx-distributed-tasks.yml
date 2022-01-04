@@ -70,7 +70,9 @@ jobs:
         id: cache
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: |
+            node_modules
+            ${{ env.CYPRESS_CACHE_FOLDER }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - uses: actions/setup-node@v1
         if: steps.cache.outputs.cache-hit != 'true'
@@ -263,7 +265,9 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: |
+            node_modules
+            ${{ env.CYPRESS_CACHE_FOLDER }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - name: npm set token
         run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc

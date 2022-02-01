@@ -1,0 +1,38 @@
+{
+  "root": "packages/string",
+  "sourceRoot": "packages/string/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "builder": "@nrwl/node:package",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/string/tsconfig.lib.prod.json"
+        }
+      },
+      "options": {
+        "assets": ["packages/string/*.md"],
+        "main": "packages/string/src/index.ts",
+        "outputPath": "dist/packages/string",
+        "packageJson": "packages/string/package.json",
+        "tsConfig": "packages/string/tsconfig.lib.json"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/string/**/*.ts", "packages/string/**/*.html"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/string"],
+      "options": {
+        "jestConfig": "packages/string/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server"]
+}

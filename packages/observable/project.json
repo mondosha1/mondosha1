@@ -1,0 +1,38 @@
+{
+  "root": "packages/observable",
+  "sourceRoot": "packages/observable/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "builder": "@nrwl/node:package",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/observable/tsconfig.lib.prod.json"
+        }
+      },
+      "options": {
+        "assets": ["packages/observable/*.md"],
+        "main": "packages/observable/src/index.ts",
+        "outputPath": "dist/packages/observable",
+        "packageJson": "packages/observable/package.json",
+        "tsConfig": "packages/observable/tsconfig.lib.json"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/observable/**/*.ts", "packages/observable/**/*.html"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/observable"],
+      "options": {
+        "jestConfig": "packages/observable/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:util", "platform:desktop"]
+}

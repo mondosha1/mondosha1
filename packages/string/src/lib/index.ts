@@ -1,0 +1,7 @@
+export * from './is-uuid.operator'
+export * from './matches.operator'
+export * from './pascal-case.operator'
+export * from './pluralize.operator'
+export * from './sentence.operator'
+export * from './url.type'
+export * from './uuid.type'

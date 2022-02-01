@@ -1,0 +1,38 @@
+{
+  "root": "packages/nullable",
+  "sourceRoot": "packages/nullable/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "builder": "@nrwl/node:package",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/nullable/tsconfig.lib.prod.json"
+        }
+      },
+      "options": {
+        "assets": ["packages/nullable/*.md"],
+        "main": "packages/nullable/src/index.ts",
+        "outputPath": "dist/packages/nullable",
+        "packageJson": "packages/nullable/package.json",
+        "tsConfig": "packages/nullable/tsconfig.lib.json"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/nullable/**/*.ts", "packages/nullable/**/*.html"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/nullable"],
+      "options": {
+        "jestConfig": "packages/nullable/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server"]
+}

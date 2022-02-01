@@ -1,0 +1,38 @@
+{
+  "root": "packages/decorators",
+  "sourceRoot": "packages/decorators/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "builder": "@nrwl/node:package",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/decorators/tsconfig.lib.prod.json"
+        }
+      },
+      "options": {
+        "assets": ["packages/decorators/*.md"],
+        "main": "packages/decorators/src/index.ts",
+        "outputPath": "dist/packages/decorators",
+        "packageJson": "packages/decorators/package.json",
+        "tsConfig": "packages/decorators/tsconfig.lib.json"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/decorators/**/*.ts", "packages/decorators/**/*.html"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/decorators"],
+      "options": {
+        "jestConfig": "packages/decorators/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server"]
+}

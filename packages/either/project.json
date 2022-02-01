@@ -1,0 +1,38 @@
+{
+  "root": "packages/either",
+  "sourceRoot": "packages/either/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "builder": "@nrwl/node:package",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/either/tsconfig.lib.prod.json"
+        }
+      },
+      "options": {
+        "assets": ["packages/either/*.md"],
+        "main": "packages/either/src/index.ts",
+        "outputPath": "dist/packages/either",
+        "packageJson": "packages/either/package.json",
+        "tsConfig": "packages/either/tsconfig.lib.json"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/either/**/*.ts", "packages/either/**/*.html"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/either"],
+      "options": {
+        "jestConfig": "packages/either/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server"]
+}

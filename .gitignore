@@ -54,6 +54,7 @@ openpgp*
 *.iml
 
 # App files
+cache
 dist
 coverage
 dev

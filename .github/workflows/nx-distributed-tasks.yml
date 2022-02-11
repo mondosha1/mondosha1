@@ -112,6 +112,8 @@ jobs:
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js format:check $NX_ARGUMENTS
       - name: nx workspace-lint
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-lint $NX_ARGUMENTS
+      - name: nx copybara:check
+        run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-generator copybara --dry-run --no-interactive | (! grep -E 'CREATE|UPDATE|DELETE')
 
   calculate-targets:
     runs-on: ubuntu-latest

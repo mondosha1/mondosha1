@@ -23,8 +23,9 @@ env:
     cache/Cypress
   CYPRESS_CACHE: cache-cypress
   CYPRESS_CACHE_FOLDER: cache/Cypress
-  DEPENDENCIES_CACHE: cache-node-modules
-  DOCKER_REGISTRY: docker-internal.elium.io
+  DEPENDENCIES_CACHE: ${{ secrets.DEPENDENCIES_CACHE || 'cache-node-modules' }}
+  DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY || 'ghcr.io' }}
+  NPM_REGISTRY: ${{ secrets.NPM_REGISTRY || 'registry.npmjs.org' }}
   E2E_ARTIFACTS: e2e-artifacts
   TEST_ARTIFACTS: test-artifacts
   NG_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.S3_PROXY_AWS_ACCESS_KEY_ID }}
@@ -81,7 +82,7 @@ jobs:
           node-version: 12.16.3
       - name: npm set token
         if: steps.cache.outputs.cache-hit != 'true'
-        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+        run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: npm install
         if: steps.cache.outputs.cache-hit != 'true'
         run: rm -rf node_modules ; npm install --from-lock-file --prefer-offline --no-audit --unsafe-perm
@@ -107,9 +108,9 @@ jobs:
           BASE_REF_WITH_PREFIX=$(if [[ ! "${{ needs.vars.outputs.GITHUB_BASE_REF }}" =~ ^[0-9a-f]{7,40}$ ]]; then echo "origin/"; fi)${{ needs.vars.outputs.GITHUB_BASE_REF }}
           echo "NX_ARGUMENTS=--base=$BASE_REF_WITH_PREFIX" >> $GITHUB_ENV
         if: needs.vars.outputs.GITHUB_HEAD_REF != needs.vars.outputs.GITHUB_BASE_REF
-      - name: nx ${{ matrix.target }}
+      - name: nx format:check
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js format:check $NX_ARGUMENTS
-      - name: nx ${{ matrix.target }}
+      - name: nx workspace-lint
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-lint $NX_ARGUMENTS
 
   calculate-targets:
@@ -273,7 +274,7 @@ jobs:
           path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - name: npm set token
-        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+        run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: Cache Cypress
         uses: actions/cache@v2
         with:
@@ -307,7 +308,7 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: npm set token for installing dedicated Node apps dependencies
-        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+        run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 

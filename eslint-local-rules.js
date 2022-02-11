@@ -5,7 +5,7 @@ module.exports = {
     meta: {
       docs: {
         description:
-          'Ensure all project define a minimal set of rule ("@elium/eslint-config/global"). This rule must be disabled in all implementation except the root eslintrc',
+          'Ensure all project define a minimal set of rule ("eslint-config-elium/global"). This rule must be disabled in all implementation except the root eslintrc',
         category: 'Possible Errors',
         recommended: false
       },

@@ -3,7 +3,7 @@
   "overrides": [
     {
       "files": ["*.ts"],
-      "extends": ["@elium/eslint-config/global-next"],
+      "extends": ["elium/global-next"],
       "parserOptions": {
         "project": ["packages/array/tsconfig.json", "packages/array/tsconfig.*?.json"]
       },

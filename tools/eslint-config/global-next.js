@@ -1,5 +1,5 @@
 module.exports = {
-  extends: '@elium/eslint-config/global',
+  extends: 'elium/global',
   plugins: ['ban'],
   rules: {
     'no-restricted-imports': [

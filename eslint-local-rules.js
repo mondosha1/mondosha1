@@ -16,8 +16,7 @@ module.exports = {
         Program: function (node) {
           context.report({
             node,
-            message:
-              'Please implement at least our @elium/eslint-config/global extends in a custom .eslintrc.json for your app/lib.'
+            message: 'Please implement at least our elium/global extends in a custom .eslintrc.json for your app/lib.'
           })
         }
       }

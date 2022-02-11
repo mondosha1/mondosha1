@@ -1,5 +1,5 @@
 module.exports = {
-  extends: '@elium/eslint-config/angular',
+  extends: 'elium/angular',
   rules: {
     '@angular-eslint/prefer-on-push-component-change-detection': 'error',
     '@angular-eslint/no-input-rename': 'error',

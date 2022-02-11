@@ -34,5 +34,5 @@
       }
     }
   },
-  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server"]
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server", "open-source:mondosha1"]
 }

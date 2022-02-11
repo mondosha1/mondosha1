@@ -1,0 +1,13 @@
+{
+  "cli": {
+    "analytics": false,
+    "packageManager": "npm",
+    "warnings": {
+      "typescriptMismatch": false
+    }
+  },
+  "projects": {
+    "core": "packages/core"
+  },
+  "version": 2
+}

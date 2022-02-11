@@ -1,0 +1,5 @@
+{
+  "pushInclude": ".github/workflows/nx-distributed-tasks.yml .github/workflows/copybara.yml .github/workflows/copybara/** tools/scripts/calculate-targets.js tools/scripts/run-tasks.js tools/eslint-config/** .nvmrc .editorconfig .prettierrc.json .prettierignore .gitignore decorate-angular-cli.js eslint-local-rules.js jest.preset.js libs/shared/util-core/**",
+  "pushMove": ".github/workflows/copybara/workspace.json||workspace.json\n.github/workflows/copybara/nx.json||nx.json\n.github/workflows/copybara/tsconfig.base.json||tsconfig.base.json\n.github/workflows/copybara/package.json||package.json\n.github/workflows/copybara/package-lock.json||package-lock.json\nlibs/shared/util-core||packages/core",
+  "pushReplace": "../../..||../..||packages/*/tsconfig.json\n../../..||../..||packages/*/jest.config.js\nElium||Mondosha1||**/*.md\n@elium/shared/util-core||@mondosha1/core||packages/**\nlibs/shared/util-core||packages/core||packages/**\nshared-util-core||core||packages/**\n"
+}

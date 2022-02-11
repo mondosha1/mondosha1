@@ -1,0 +1,29 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "declaration": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "lib": ["es2015", "dom", "esnext.asynciterable"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "paths": {
+      "@mondosha1/core": ["packages/core/src/index.ts"]
+    },
+    "removeComments": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "target": "es2017",
+    "typeRoots": ["node_modules/@types", "typings"],
+    "types": ["node"]
+  },
+  "exclude": ["**/node_modules", "**/.*/"]
+}

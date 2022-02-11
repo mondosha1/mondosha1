@@ -1,0 +1,40 @@
+name: Copybara
+
+on:
+  push:
+  pull_request_target:
+
+concurrency:
+  group: copybara-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+env:
+  SOT_REPO: Elium/service-platform
+  DESTINATION_REPO: mondosha1/mondosha1
+
+jobs:
+  move-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - id: COPYBARA_CONFIG
+        run: |
+          content=`cat .github/workflows/copybara/copybara.config.json`
+          content="${content//'%'/'%25'}"
+          content="${content//$'\n'/'%0A'}"
+          content="${content//$'\r'/'%0D'}"
+          echo "::set-output name=value::$content"
+      - uses: olivr/copybara-action@v1.2.3
+        with:
+          ssh_key: ${{ secrets.SSH_KEY }}
+          access_token: ${{ secrets.COPYBARA_ACCESS_TOKEN }}
+          sot_repo: Elium/service-platform
+          sot_branch: feat/util/open-source-lib
+          destination_repo: mondosha1/mondosha1
+          destination_branch: master
+          copybara_options: --force ${{ github.repository == 'Elium/service-platform' && '--init-history' || '' }}
+          push_include: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushInclude }}
+          push_replace: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushReplace }}
+          push_move: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushMove }}

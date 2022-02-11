@@ -18,6 +18,9 @@ concurrency:
 
 env:
   BUILD_ARTIFACTS: build-artifacts
+  CACHED_PATHS: |
+    node_modules
+    cache/Cypress
   CYPRESS_CACHE: cache-cypress
   CYPRESS_CACHE_FOLDER: cache/Cypress
   DEPENDENCIES_CACHE: cache-node-modules
@@ -70,9 +73,7 @@ jobs:
         id: cache
         uses: actions/cache@v2
         with:
-          path: |
-            node_modules
-            ${{ env.CYPRESS_CACHE_FOLDER }}
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - uses: actions/setup-node@v1
         if: steps.cache.outputs.cache-hit != 'true'
@@ -93,12 +94,14 @@ jobs:
         with:
           fetch-depth: 0
       - name: Cache node modules
+        id: cache
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
-      - name: copy eslint-config
-        run: cp -R tools/eslint-config ./node_modules/@elium
+      - name: Exit job if deps not cached yet
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: exit 1
       - name: Compute Nx arguments
         run: |
           BASE_REF_WITH_PREFIX=$(if [[ ! "${{ needs.vars.outputs.GITHUB_BASE_REF }}" =~ ^[0-9a-f]{7,40}$ ]]; then echo "origin/"; fi)${{ needs.vars.outputs.GITHUB_BASE_REF }}
@@ -140,12 +143,14 @@ jobs:
         with:
           fetch-depth: 0
       - name: Cache node modules
+        id: cache
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
-      - name: copy eslint-config
-        run: cp -R tools/eslint-config ./node_modules/@elium
+      - name: Exit job if deps not cached yet
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: exit 1
       - name: Calculate distributed targets
         id: DISTRIBUTED_TARGETS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js ${{ env.distributedTargets }} ${{ env.distributedChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
@@ -213,7 +218,7 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
@@ -243,7 +248,7 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
@@ -265,9 +270,7 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v2
         with:
-          path: |
-            node_modules
-            ${{ env.CYPRESS_CACHE_FOLDER }}
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - name: npm set token
         run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
@@ -300,7 +303,7 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: npm set token for installing dedicated Node apps dependencies
@@ -320,7 +323,7 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
@@ -338,7 +341,7 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
@@ -356,7 +359,7 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: ${{ env.CACHED_PATHS }}
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
       - name: nx deploy
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}

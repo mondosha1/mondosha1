@@ -4,7 +4,8 @@
   "projectType": "library",
   "targets": {
     "build": {
-      "builder": "@nrwl/node:package",
+      "executor": "@nrwl/node:package",
+      "outputs": ["{options.outputPath}"],
       "configurations": {
         "production": {
           "tsConfig": "packages/decorators/tsconfig.lib.prod.json"

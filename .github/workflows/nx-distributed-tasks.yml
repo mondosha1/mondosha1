@@ -18,6 +18,8 @@ concurrency:
 
 env:
   BUILD_ARTIFACTS: build-artifacts
+  BUILD_LIBRARIES: ${{ secrets.BUILD_LIBRARIES || 'false' }}
+  PUBLISH_LIBRARIES: ${{ secrets.PUBLISH_LIBRARIES || 'false' }}
   CACHED_PATHS: |
     node_modules
     cache/Cypress
@@ -124,6 +126,7 @@ jobs:
       buildTasksChunkSize: 1
       e2eTasksChunkSize: 1
       dockerTasksChunkSize: 5
+      publishTasksChunkSize: 5
       itTasksChunkSize: 1
       deployTasksChunkSize: 5
     outputs:
@@ -141,6 +144,8 @@ jobs:
       HAS_DOCKER_TAG_TASKS: ${{ join(fromJson(steps.DOCKER_TAG_TASKS.outputs.value).tasks) != '' }}
       DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
       HAS_DEPLOY_TASKS: ${{ join(fromJson(steps.DEPLOY_TASKS.outputs.value).tasks) != '' }}
+      PUBLISH_TASKS: ${{ steps.PUBLISH_TASKS.outputs.value }}
+      HAS_PUBLISH_TASKS: ${{ (env.PUBLISH_LIBRARIES == 'true') && (join(fromJson(steps.PUBLISH_TASKS.outputs.value).tasks) != '') }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -159,7 +164,7 @@ jobs:
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js ${{ env.distributedTargets }} ${{ env.distributedChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate build targets
         id: BUILD_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} --no-deps)"
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ env.BUILD_LIBRARIES == 'true' && '--build-libraries' || '' }})"
       - name: Calculate e2e targets
         id: E2E_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e ${{ env.e2eTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
@@ -172,6 +177,9 @@ jobs:
       - name: Calculate docker tag tasks
         id: DOCKER_TAG_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-tag ${{ env.dockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+      - name: Calculate publish tasks
+        id: PUBLISH_TASKS
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js publish ${{ env.publishTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate deploy tasks
         id: DEPLOY_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js deploy ${{ env.deployTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
@@ -201,6 +209,10 @@ jobs:
           echo "${{ steps.DOCKER_TAG_TASKS.outputs.value }}"
           echo ""
           echo ""
+          echo "--- PUBLISH_TASKS ---"
+          echo "${{ steps.PUBLISH_TASKS.outputs.value }}"
+          echo ""
+          echo ""
           echo "--- DEPLOY_TASKS ---"
           echo "${{ steps.DEPLOY_TASKS.outputs.value }}"
 
@@ -208,7 +220,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: ${{ needs.calculate-targets.outputs.HAS_DISTRIBUTED_TARGETS == 'true' }}
+    if: needs.calculate-targets.outputs.HAS_DISTRIBUTED_TARGETS == 'true'
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DISTRIBUTED_TARGETS) }}
@@ -238,7 +250,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: ${{ needs.calculate-targets.outputs.HAS_BUILD_TASKS == 'true' }}
+    if: needs.calculate-targets.outputs.HAS_BUILD_TASKS == 'true'
     strategy:
       matrix: ${{ fromJson(needs.calculate-targets.outputs.BUILD_TASKS) }}
       fail-fast: false
@@ -260,7 +272,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: ${{ needs.calculate-targets.outputs.HAS_E2E_TASKS == 'true' }}
+    if: needs.calculate-targets.outputs.HAS_E2E_TASKS == 'true'
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_TASKS) }}
@@ -294,10 +306,29 @@ jobs:
           name: ${{ env.E2E_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
           path: dist
 
+  publish:
+    runs-on: ubuntu-latest
+    needs: [vars, calculate-targets, build]
+    if: needs.calculate-targets.outputs.HAS_PUBLISH_TASKS == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.calculate-targets.outputs.PUBLISH_TASKS) }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CACHED_PATHS }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+      - name: npm set token for publishing projects
+        run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+      - name: nx publish
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
+
   docker-build:
     runs-on: ubuntu-latest
     needs: [vars, precheck, calculate-targets, build]
-    if: ${{ needs.calculate-targets.outputs.HAS_DOCKER_BUILD_TASKS == 'true' }}
+    if: needs.calculate-targets.outputs.HAS_DOCKER_BUILD_TASKS == 'true'
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS) }}
@@ -317,7 +348,7 @@ jobs:
   it:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: ${{ needs.calculate-targets.outputs.HAS_IT_TASKS == 'true' }}
+    if: needs.calculate-targets.outputs.HAS_IT_TASKS == 'true'
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.IT_TASKS) }}
@@ -333,7 +364,7 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --branch=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
 
   docker-tag:
-    if: ${{ (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'true' && always() }}
+    if: (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'true' && always()
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build, e2e, it]
     strategy:
@@ -352,7 +383,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/master' && (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'true' && always() }}
+    if: github.ref == 'refs/heads/master' && (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'true' && always()
     needs: [vars, calculate-targets, it, e2e]
     strategy:
       fail-fast: false
@@ -369,7 +400,7 @@ jobs:
 
   success:
     runs-on: ubuntu-latest
-    if: ${{ (needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'false' || needs.docker-tag.result == 'success') && (github.ref != 'refs/heads/master' || needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'false' || needs.deploy.result == 'success') && always() }}
-    needs: [vars, docker-tag, deploy]
+    if: (needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'false' || needs.docker-tag.result == 'success') && (needs.calculate-targets.outputs.HAS_PUBLISH_TASKS == 'false' || needs.publish.result == 'success') && (github.ref != 'refs/heads/master' || needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'false' || needs.deploy.result == 'success') && always()
+    needs: [vars, docker-tag, publish, deploy]
     steps:
       - run: echo "Workflow succeeded"

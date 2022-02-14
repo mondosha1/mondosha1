@@ -42,5 +42,5 @@
   "root": "packages/feature-store-kit",
   "generators": {},
   "sourceRoot": "packages/feature-store-kit/src",
-  "tags": ["scope:shared", "type:framework", "platform:desktop"]
+  "tags": ["scope:shared", "type:framework", "platform:desktop", "open-source:mondosha1"]
 }

@@ -19,11 +19,30 @@
         "tsConfig": "packages/nullable/tsconfig.lib.json"
       }
     },
+    "bump": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "command": "cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\", ]//g' | xargs -I '{}' sed -i '' 's/\"version\":[ ]*\"[^\"]*\"/\"version\": \"{}\"/g' packages/nullable/package.json"
+      }
+    },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["packages/nullable/**/*.ts", "packages/nullable/**/*.html"]
+      }
+    },
+    "publish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "dependsOn": [
+        {
+          "target": "bump",
+          "projects": "self"
+        }
+      ],
+      "options": {
+        "command": "npm pack | npm publish",
+        "cwd": "dist/packages/nullable"
       }
     },
     "test": {
@@ -35,5 +54,5 @@
       }
     }
   },
-  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server"]
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server", "open-source:mondosha1"]
 }

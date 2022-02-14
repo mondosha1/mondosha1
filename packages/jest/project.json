@@ -15,12 +15,31 @@
         "tsConfig": "packages/jest/tsconfig.lib.json"
       }
     },
+    "bump": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "command": "cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\", ]//g' | xargs -I '{}' sed -i '' 's/\"version\":[ ]*\"[^\"]*\"/\"version\": \"{}\"/g' packages/jest/package.json"
+      }
+    },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
         "lintFilePatterns": ["packages/jest/**/*.ts", "packages/jest/**/*.html"]
       },
       "outputs": ["{options.outputFile}"]
+    },
+    "publish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "dependsOn": [
+        {
+          "target": "bump",
+          "projects": "self"
+        }
+      ],
+      "options": {
+        "command": "npm pack | npm publish",
+        "cwd": "dist/packages/jest"
+      }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
@@ -33,5 +52,5 @@
   "projectType": "library",
   "root": "packages/jest",
   "sourceRoot": "packages/jest/src",
-  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server"]
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server", "open-source:mondosha1"]
 }

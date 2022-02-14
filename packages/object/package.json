@@ -2,6 +2,7 @@
   "name": "@mondosha1/object",
   "version": "0.0.1",
   "dependencies": {
+    "lodash": "4.17.21",
     "tslib": "^2.0.1"
   }
 }

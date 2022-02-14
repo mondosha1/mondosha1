@@ -1,0 +1,46 @@
+{
+  "targets": {
+    "build": {
+      "executor": "@nrwl/angular:ng-packagr-lite",
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "dependencies"
+        }
+      ],
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/feature-store-kit/tsconfig.lib.prod.json"
+        }
+      },
+      "options": {
+        "project": "packages/feature-store-kit/ng-package.json",
+        "tsConfig": "packages/feature-store-kit/tsconfig.lib.json"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "packages/feature-store-kit/**/*.ts",
+          "packages/feature-store-kit/src/**/*.html"
+        ]
+      },
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "options": {
+        "jestConfig": "packages/feature-store-kit/jest.config.js",
+        "passWithNoTests": true
+      },
+      "outputs": ["coverage/packages/feature-store-kit"]
+    }
+  },
+  "prefix": "el",
+  "projectType": "library",
+  "root": "packages/feature-store-kit",
+  "generators": {},
+  "sourceRoot": "packages/feature-store-kit/src",
+  "tags": ["scope:shared", "type:framework", "platform:desktop"]
+}

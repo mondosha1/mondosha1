@@ -1,0 +1,34 @@
+{
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "extends": ["plugin:@nrwl/nx/angular", "elium/angular-next", "elium/global-next"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              "lodash",
+              "@progress/kendo-angular-dialog",
+              {
+                "name": "rxjs/operators",
+                "importNames": ["tap"],
+                "message": "Prefer use tap from @elium/shared/util"
+              },
+              {
+                "name": "lodash/fp",
+                "importNames": ["differenceBy", "get", "tap"]
+              },
+              {
+                "name": "@ngrx/store",
+                "importNames": ["props"]
+              },
+              "@mondosha1/feature-store-kit"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

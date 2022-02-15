@@ -20,10 +20,6 @@
                 "name": "lodash/fp",
                 "importNames": ["differenceBy", "get", "tap"]
               },
-              {
-                "name": "@ngrx/store",
-                "importNames": ["props"]
-              },
               "@mondosha1/feature-store-kit"
             ]
           }

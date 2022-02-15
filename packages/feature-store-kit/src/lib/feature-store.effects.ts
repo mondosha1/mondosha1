@@ -72,7 +72,7 @@ export class FeatureStoreEffects<State extends {}> {
   public initStore() {
     return this.actions$.pipe(
       ofType(featureStore.initStore),
-      map(action => action.payload),
+      map(action => action.values),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
       map(({ values }) => values),
       tap(values => this.featureStoreFacade.setReferenceState(values)),
@@ -105,7 +105,6 @@ export class FeatureStoreEffects<State extends {}> {
   public initStoreFromParent(stream$: (source$: Observable<State>) => Observable<any> = switchMap(() => of(null))) {
     return this.actions$.pipe(
       ofType(featureStore.initStoreFromParent),
-      map(action => action.payload),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
       tap(() => this.featureStoreFacade.setStatus(FeatureStoreStatus.Initializing)),
       map(({ values }) => values),
@@ -147,7 +146,6 @@ export class FeatureStoreEffects<State extends {}> {
   ) {
     return this.actions$.pipe(
       ofType(featureStore.updateStoreFromParams),
-      map(action => action.payload),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
       filterFrom(this.featureStoreFacade.isReady$, negate),
       tap(() => this.featureStoreFacade.setStatus(FeatureStoreStatus.Initializing)),
@@ -242,7 +240,6 @@ export class FeatureStoreEffects<State extends {}> {
   ) {
     return this.actions$.pipe(
       ofType(featureStore.submit),
-      map(action => action.payload),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
       filterFrom(
         this.featureStoreFacade.validationStatus$,
@@ -284,7 +281,6 @@ export class FeatureStoreEffects<State extends {}> {
   ) {
     return this.actions$.pipe(
       ofType(featureStore.submit),
-      map(action => action.payload),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
       filterFrom(
         _of(this.parentAndChildren).pipe(
@@ -328,8 +324,8 @@ export class FeatureStoreEffects<State extends {}> {
   public submitWithoutValidation() {
     return this.actions$.pipe(
       ofType(featureStore.askForValidation),
-      filter(action => action.payload.featureStoreKey === this.featureStoreOptions.featureStoreKey),
-      filter(action => action.payload.askForValidation === true),
+      filter(action => action.featureStoreKey === this.featureStoreOptions.featureStoreKey),
+      filter(action => action.askForValidation === true),
       map(() => featureStore.submit({ featureStoreKey: this.featureStoreOptions.featureStoreKey }))
     )
   }
@@ -352,8 +348,8 @@ export class FeatureStoreEffects<State extends {}> {
   public updateParamsFromForm() {
     return this.actions$.pipe(
       ofType(featureStore.updateParamsFromForm),
-      filter(action => action.payload.featureStoreKey === this.featureStoreOptions.featureStoreKey),
-      map(action => action.payload.values as Partial<State>),
+      filter(action => action.featureStoreKey === this.featureStoreOptions.featureStoreKey),
+      map(action => action.values as Partial<State>),
       withLatestFrom(
         this.featureStoreFacade.stateWithoutMetaData$,
         this.featureStoreFacade.referenceState$,

@@ -1,5 +1,5 @@
 import { ValidationStatus } from '@elium/shared/util'
-import { createAction } from '@elium/shared/util-angular'
+import { createAction } from '@ngrx/store'
 import { of } from '@mondosha1/core'
 import { defaultsDeep, extend, identity } from 'lodash/fp'
 import * as featureStoreActions from './feature-store.actions'

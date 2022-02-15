@@ -1,4 +1,4 @@
-import { createAction, props } from '@elium/shared/util-angular'
+import { createAction, props } from '@ngrx/store'
 import { FeatureStoreFormState, FeatureStoreStatus } from './feature-store.state'
 
 export interface IFeatureStoreAction {

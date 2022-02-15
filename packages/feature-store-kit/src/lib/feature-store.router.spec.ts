@@ -1,6 +1,4 @@
-import { Structure } from './feature-store.structure'
 import { deepFreeze } from '@mondosha1/object'
-import { FeatureStoreEffectHelper } from './feature-store-effects.helper'
 import {
   brandWrapperFSKey,
   creativeListFSKey,
@@ -10,33 +8,30 @@ import {
   inventoriesSegments,
   inventoriesSegmentsWithDialogOnCreativeListSegments
 } from './feature-store-effects.helper.mocks'
+import { FeatureStoreRouter } from './feature-store.router'
+import { Structure } from './feature-store.structure'
 
-describe('Feature store helpers', () => {
+describe('Feature store router', () => {
   describe('generateRouteHash', () => {
     it("should return a null hash if doesn't match featureStoreKey (matchesFeatureStoreKey)", () => {
-      expect(FeatureStoreEffectHelper.generateRouteHash(creativeListFSKey, creativeListSegments)).not.toBeNull()
-      expect(FeatureStoreEffectHelper.generateRouteHash('toto', [])).toBeNull()
-      expect(FeatureStoreEffectHelper.generateRouteHash(creativeListFSKey, [])).toBeNull()
-      expect(FeatureStoreEffectHelper.generateRouteHash(creativeListFSKey, inventoriesSegments)).toBeNull()
+      expect(FeatureStoreRouter.generateRouteHash(creativeListFSKey, creativeListSegments)).not.toBeNull()
+      expect(FeatureStoreRouter.generateRouteHash('toto', [])).toBeNull()
+      expect(FeatureStoreRouter.generateRouteHash(creativeListFSKey, [])).toBeNull()
+      expect(FeatureStoreRouter.generateRouteHash(creativeListFSKey, inventoriesSegments)).toBeNull()
     })
 
     it('should return a hash prefixed with the outlet name where we find the FSKey', () => {
-      expect(FeatureStoreEffectHelper.generateRouteHash(creativeListFSKey, creativeListSegments)).toBe(
+      expect(FeatureStoreRouter.generateRouteHash(creativeListFSKey, creativeListSegments)).toBe('primary/creatives')
+      expect(FeatureStoreRouter.generateRouteHash(creativeListFSKey, creativeListWithEditOutletSegments)).toBe(
         'primary/creatives'
       )
-      expect(FeatureStoreEffectHelper.generateRouteHash(creativeListFSKey, creativeListWithEditOutletSegments)).toBe(
-        'primary/creatives'
-      )
-      expect(FeatureStoreEffectHelper.generateRouteHash(creativeListFSKey, creativeListOnBrandSegments)).toBe(
+      expect(FeatureStoreRouter.generateRouteHash(creativeListFSKey, creativeListOnBrandSegments)).toBe(
         'primary/settings/brands/302/creatives'
       )
       expect(
-        FeatureStoreEffectHelper.generateRouteHash(
-          creativeListFSKey,
-          inventoriesSegmentsWithDialogOnCreativeListSegments
-        )
+        FeatureStoreRouter.generateRouteHash(creativeListFSKey, inventoriesSegmentsWithDialogOnCreativeListSegments)
       ).toBe('dialog1/creatives')
-      expect(FeatureStoreEffectHelper.generateRouteHash(brandWrapperFSKey, creativeListOnBrandSegments)).toBe(
+      expect(FeatureStoreRouter.generateRouteHash(brandWrapperFSKey, creativeListOnBrandSegments)).toBe(
         'primary/settings/brands/302'
       )
     })
@@ -44,16 +39,16 @@ describe('Feature store helpers', () => {
 
   describe('matchesFeatureStoreKey', () => {
     it('should return true if a segment has feature store key inside data', () => {
-      expect(FeatureStoreEffectHelper.matchesFeatureStoreKey(creativeListFSKey, creativeListSegments)).toBe(true)
+      expect(FeatureStoreRouter.matchesFeatureStoreKey(creativeListFSKey, creativeListSegments)).toBe(true)
     })
 
     it("should return false if a segment don't have feature store key inside data", () => {
-      expect(FeatureStoreEffectHelper.matchesFeatureStoreKey(creativeListFSKey, inventoriesSegments)).toBe(false)
+      expect(FeatureStoreRouter.matchesFeatureStoreKey(creativeListFSKey, inventoriesSegments)).toBe(false)
     })
 
     it("should return false if a segment don't match feature store key inside data", () => {
-      expect(FeatureStoreEffectHelper.matchesFeatureStoreKey('', creativeListSegments)).toBe(false)
-      expect(FeatureStoreEffectHelper.matchesFeatureStoreKey('noWay!', creativeListSegments)).toBe(false)
+      expect(FeatureStoreRouter.matchesFeatureStoreKey('', creativeListSegments)).toBe(false)
+      expect(FeatureStoreRouter.matchesFeatureStoreKey('noWay!', creativeListSegments)).toBe(false)
     })
   })
 
@@ -61,7 +56,7 @@ describe('Feature store helpers', () => {
 
   describe('getParametersByFeatureStoreKey', () => {
     expect(
-      FeatureStoreEffectHelper.getParametersByFeatureStoreKey(creativeListFSKey, creativeListOnBrandSegments)
+      FeatureStoreRouter.getParametersByFeatureStoreKey(creativeListFSKey, creativeListOnBrandSegments)
     ).toStrictEqual({
       brandId: '302',
       search: 'a',
@@ -87,7 +82,7 @@ describe('Feature store helpers', () => {
       const newParams = { brandId: 2, search: 'updated text' }
       const currentState = { brandId: null, search: 'text from state' }
       const existingParams = { brandId: 2, search: 'some text' }
-      const formattedParams = FeatureStoreEffectHelper.formatParams(
+      const formattedParams = FeatureStoreRouter.formatParams(
         referenceState,
         structure,
         null,
@@ -100,7 +95,7 @@ describe('Feature store helpers', () => {
 
     it('should return null if there is no param to update', () => {
       const newParams = { brandId: 2, search: 'some text' }
-      const formattedParams = FeatureStoreEffectHelper.formatParams(
+      const formattedParams = FeatureStoreRouter.formatParams(
         { brandId: 2, search: 'some text' },
         structure,
         null,
@@ -115,7 +110,7 @@ describe('Feature store helpers', () => {
       const newParams = { brandId: 2, search: 'some text' }
       const currentState = { brandId: 2, search: '', filters: ['filter1', 'filter2'] }
       const existingParams = { brandId: 2, search: 'some text' }
-      const formattedParams = FeatureStoreEffectHelper.formatParams(
+      const formattedParams = FeatureStoreRouter.formatParams(
         referenceState,
         structure,
         null,
@@ -135,7 +130,7 @@ describe('Feature store helpers', () => {
       const currentState = { search: '', filters: ['filter1', 'filter2'] }
       const existingParams = { search: 'some text' }
       const structurePathsForParams = ['filters', 'search']
-      const formattedParams = FeatureStoreEffectHelper.formatParams(
+      const formattedParams = FeatureStoreRouter.formatParams(
         referenceState,
         structure,
         structurePathsForParams,
@@ -152,7 +147,7 @@ describe('Feature store helpers', () => {
     it('should ignore params which have the same value as both in the reference state and in the current state', () => {
       let formattedParams
 
-      formattedParams = FeatureStoreEffectHelper.formatParams(
+      formattedParams = FeatureStoreRouter.formatParams(
         { brandId: 1, search: null },
         structure,
         null,
@@ -165,7 +160,7 @@ describe('Feature store helpers', () => {
         search: 'updated text'
       })
 
-      formattedParams = FeatureStoreEffectHelper.formatParams(
+      formattedParams = FeatureStoreRouter.formatParams(
         { brandId: 2, search: null },
         structure,
         null,
@@ -178,7 +173,7 @@ describe('Feature store helpers', () => {
         search: 'updated text'
       })
 
-      formattedParams = FeatureStoreEffectHelper.formatParams(
+      formattedParams = FeatureStoreRouter.formatParams(
         { brandId: 2, search: null },
         structure,
         null,
@@ -195,7 +190,7 @@ describe('Feature store helpers', () => {
       const currentState = { brandId: 1, search: 'some text' }
       let formattedParams
 
-      formattedParams = FeatureStoreEffectHelper.formatParams(
+      formattedParams = FeatureStoreRouter.formatParams(
         referenceState,
         structure,
         ['search'],
@@ -208,7 +203,7 @@ describe('Feature store helpers', () => {
         search: 'updated text'
       })
 
-      formattedParams = FeatureStoreEffectHelper.formatParams(
+      formattedParams = FeatureStoreRouter.formatParams(
         referenceState,
         structure,
         ['search'],

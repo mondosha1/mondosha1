@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core'
-import { RouterState } from '@elium/shared/data-router'
 import { Nullable } from '@mondosha1/nullable'
 import { select, Store } from '@ngrx/store'
 import { Observable } from 'rxjs'
@@ -26,9 +25,6 @@ export class FeatureStoreFacade<State extends {}, WithMetaState = FeatureStoreSt
   public readonly referenceState$: Observable<Nullable<State>> = this.store.pipe(
     select(featureStoreQuery.getReferenceState(), { featureStoreKey: this.featureStoreKey })
   ) as Observable<Nullable<State>>
-  public readonly routeHash$: Observable<Nullable<string>> = this.store.pipe(
-    select(featureStoreQuery.getRouteHash(), { featureStoreKey: this.featureStoreKey })
-  )
   public readonly stateWithoutMetaData$: Observable<Nullable<State>> = this.store.pipe(
     select(featureStoreQuery.getStateWithoutMetaData(), { featureStoreKey: this.featureStoreKey })
   ) as Observable<Nullable<State>>
@@ -40,10 +36,7 @@ export class FeatureStoreFacade<State extends {}, WithMetaState = FeatureStoreSt
     select(featureStoreQuery.getValidationStatus(), { featureStoreKey: this.featureStoreKey })
   )
 
-  public constructor(
-    private readonly featureStoreKey: string,
-    private readonly store: Store<WithMetaState & RouterState>
-  ) {}
+  public constructor(private readonly featureStoreKey: string, private readonly store: Store<WithMetaState>) {}
 
   public askForValidation(askForValidation: boolean): void {
     this.store.dispatch(featureStore.askForValidation({ featureStoreKey: this.featureStoreKey, askForValidation }))

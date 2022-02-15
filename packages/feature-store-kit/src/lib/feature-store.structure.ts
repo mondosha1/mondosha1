@@ -1,5 +1,5 @@
 import { defaultToEmptyArray, difference, emptyArray, Many, prepend } from '@mondosha1/array'
-import { parseBool } from '@mondosha1/boolean'
+import { negate, parseBool } from '@mondosha1/boolean'
 import { IMap, of } from '@mondosha1/core'
 import { ISO_DATE, ISO_DATETIME, MILLISECONDS_TIMESTAMP } from '@mondosha1/date'
 import { defaultToNull, foldOn, foldRightOn } from '@mondosha1/nullable'
@@ -8,6 +8,7 @@ import {
   emptyObject,
   fromString,
   get,
+  jsonEqual,
   mapValuesWithKey,
   reduceObject,
   toJSON,
@@ -103,6 +104,18 @@ export type ComplexArrayField<T> = ArrayField<T> & { items: FieldGroup<T> }
 const defaultFieldType: FieldType = 'string'
 
 export class FeatureStoreStructure {
+  public static differsFromCurrentOrReferenceValue<State extends {}, WithMetaState = FeatureStoreState<State>>(
+    referenceState: Partial<State>,
+    currentState: Partial<State>,
+    key: keyof State,
+    value: any
+  ) {
+    return (
+      of(currentState).pipe(get(key), jsonEqual(value), negate) ||
+      of(referenceState).pipe(get(key), jsonEqual(value), negate)
+    )
+  }
+
   public static extractType<State extends {}, WithMetaState = FeatureStoreState<State>>(
     structure: Structure<WithMetaState>,
     path: (string | number)[]

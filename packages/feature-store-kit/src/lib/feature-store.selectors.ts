@@ -1,10 +1,8 @@
-import { routerQuery, RouterRoute } from '@elium/shared/data-router'
 import { IMap, of } from '@mondosha1/core'
 import { foldRight } from '@mondosha1/nullable'
 import { get } from '@mondosha1/object'
 import { createSelector } from '@ngrx/store'
 import { defaultTo, includes, isEqual, isNil, omit, tap } from 'lodash/fp'
-import { FeatureStoreEffectHelper } from './feature-store-effects.helper'
 import {
   FeatureStoreFormState,
   FeatureStoreMetaState,
@@ -92,19 +90,11 @@ const isChanged = <State extends {}>() =>
     (state: State | null, referenceState: State | null): boolean => !isEqual(state, referenceState)
   )
 
-const getRouteHash = () =>
-  createSelector(
-    routerQuery.getRoutesWithSegments,
-    (segments: RouterRoute[], props: { featureStoreKey: string }): string =>
-      FeatureStoreEffectHelper.generateRouteHash(props.featureStoreKey, segments)
-  )
-
 export const featureStoreQuery = {
   getAskForValidation,
   getFormState,
   getReferenceState,
   getRootState,
-  getRouteHash,
   getState,
   getStateWithoutMetaData,
   getStatus,

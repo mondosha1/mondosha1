@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core'
-import { RouterFacade, RouterRoute, RouterStateUrl } from '@elium/shared/data-router'
-import { ActionExtended } from '@elium/shared/util-angular'
+import { Router } from '@angular/router'
 import { append } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
 import { IMapK, of as _of } from '@mondosha1/core'
-import { foldLeftOn, Nullable } from '@mondosha1/nullable'
+import { foldLeftOn } from '@mondosha1/nullable'
 import { filterFrom, firstValue, toLatestFrom, toLatestsFrom } from '@mondosha1/observable'
 import { Actions, ofType } from '@ngrx/effects'
-import { ROUTER_NAVIGATION, RouterNavigationAction } from '@ngrx/router-store'
-import { select, Store } from '@ngrx/store'
+import { ROUTER_NAVIGATION } from '@ngrx/router-store'
+import { Action, select, Store } from '@ngrx/store'
 import {
   compact,
   defaultsDeep,
@@ -37,16 +36,16 @@ import {
   tap,
   withLatestFrom
 } from 'rxjs/operators'
-import { FeatureStoreEffectHelper } from './feature-store-effects.helper'
 import * as featureStore from './feature-store.actions'
 import { FeatureStoreFacade, FeatureStoreFacadeFactory } from './feature-store.facade'
 import { FeatureStoreFramework } from './feature-store.framework'
+import { FeatureStoreRouter, FeatureStoreRouterStoreState, RouterRoute } from './feature-store.router'
 import { featureStoreQuery } from './feature-store.selectors'
 import {
   FeatureStoreModuleOptions,
   FeatureStoreState,
-  ValidationStatus,
-  FeatureStoreStatus
+  FeatureStoreStatus,
+  ValidationStatus
 } from './feature-store.state'
 import { FeatureStoreStructure } from './feature-store.structure'
 
@@ -54,10 +53,10 @@ export class FeatureStoreEffects<State extends {}> {
   private static readonly RESET_WAIT_FOR_READINESS_TIMEOUT: number = 5_000
 
   public constructor(
-    private readonly featureStoreOptions: FeatureStoreModuleOptions<State>,
-    private readonly featureStoreFacade: FeatureStoreFacade<State>,
     private readonly actions$: Actions,
-    private readonly routerFacade: RouterFacade,
+    private readonly featureStoreFacade: FeatureStoreFacade<State>,
+    private readonly featureStoreOptions: FeatureStoreModuleOptions<State>,
+    private readonly router: Router,
     private readonly store: Store<FeatureStoreState<State>>
   ) {}
 
@@ -80,9 +79,9 @@ export class FeatureStoreEffects<State extends {}> {
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
       map(({ values }) => values),
       tap(values => this.featureStoreFacade.setReferenceState(values)),
-      withLatestFrom(this.routerFacade.routesWithSegments$),
-      map(([values, segments]) => {
-        const params = FeatureStoreEffectHelper.getParametersByFeatureStoreKey(
+      map(values => {
+        const segments = FeatureStoreRouter.extractRoutesWithSegments(this.router.routerState.snapshot)
+        const params = FeatureStoreRouter.getParametersByFeatureStoreKey(
           this.featureStoreOptions.featureStoreKey,
           segments
         )
@@ -139,13 +138,11 @@ export class FeatureStoreEffects<State extends {}> {
    */
   public navigateToStore(stream$?: (source$: Observable<State>) => Observable<any>, config?: { dispatch: false })
   public navigateToStore(
-    stream$?: (source$: Observable<State>) => Observable<ActionExtended<any, any> | ActionExtended<any, any>[]>,
+    stream$?: (source$: Observable<State>) => Observable<Action | Action[]>,
     config?: { dispatch: true }
   )
   public navigateToStore(
-    stream$: (
-      source$: Observable<State>
-    ) => Observable<ActionExtended<any, any> | ActionExtended<any, any>[] | any> = switchMap(() => of(null)),
+    stream$: (source$: Observable<State>) => Observable<Action | Action[] | any> = switchMap(() => of(null)),
     { dispatch }: { dispatch: boolean } = { dispatch: false }
   ) {
     return this.actions$.pipe(
@@ -155,17 +152,14 @@ export class FeatureStoreEffects<State extends {}> {
       tap(() => this.featureStoreFacade.setStatus(FeatureStoreStatus.Initializing)),
       map(({ values }) => values),
       stream$,
-      mergeMap((actions: ActionExtended<any, any> | ActionExtended<any, any>[] | any) =>
+      mergeMap((actions: Action | Action[] | any) =>
         _of([
           featureStore.setStatus({
             featureStoreKey: this.featureStoreOptions.featureStoreKey,
             status: FeatureStoreStatus.Ready
           })
         ]).pipe(
-          foldLeftOn<any, any, readonly ActionExtended<any, any>[], any>(
-            () => dispatch && !isEmpty(actions),
-            append(actions)
-          ),
+          foldLeftOn<any, any, readonly Action[], any>(() => dispatch && !isEmpty(actions), append(actions)),
           compact
         )
       )
@@ -187,10 +181,8 @@ export class FeatureStoreEffects<State extends {}> {
   public resetStoreOnLeave() {
     return this.actions$.pipe(
       ofType(ROUTER_NAVIGATION),
-      map((action: RouterNavigationAction<RouterStateUrl>) => action.payload.routerState.routesWithSegments),
-      map(
-        (segments: RouterRoute[]): Nullable<string> =>
-          FeatureStoreEffectHelper.generateRouteHash(this.featureStoreOptions.featureStoreKey, segments)
+      map(({ routerState }: { routerState: FeatureStoreRouterStoreState }) =>
+        FeatureStoreRouter.getRouteHash(this.featureStoreOptions.featureStoreKey, routerState)
       ),
       pairwise(),
       filter(
@@ -204,10 +196,8 @@ export class FeatureStoreEffects<State extends {}> {
   public resetStoreWithChildrenOnLeave() {
     return this.actions$.pipe(
       ofType(ROUTER_NAVIGATION),
-      map((action: RouterNavigationAction<RouterStateUrl>) => action.payload.routerState.routesWithSegments),
-      map(
-        (segments: RouterRoute[]): Nullable<string> =>
-          FeatureStoreEffectHelper.generateRouteHash(this.featureStoreOptions.featureStoreKey, segments)
+      map(({ routerState }: { routerState: FeatureStoreRouterStoreState }) =>
+        FeatureStoreRouter.getRouteHash(this.featureStoreOptions.featureStoreKey, routerState)
       ),
       pairwise(),
       filter(
@@ -233,13 +223,11 @@ export class FeatureStoreEffects<State extends {}> {
    */
   public submitIfValid(stream$?: (source$: Observable<State>) => Observable<any>, config?: { dispatch: false })
   public submitIfValid(
-    stream$?: (source$: Observable<State>) => Observable<ActionExtended<any, any> | ActionExtended<any, any>[]>,
+    stream$?: (source$: Observable<State>) => Observable<Action | Action[]>,
     config?: { dispatch: true }
   )
   public submitIfValid(
-    stream$: (
-      source$: Observable<State>
-    ) => Observable<ActionExtended<any, any> | ActionExtended<any, any>[] | any> = switchMap(() => of(null)),
+    stream$: (source$: Observable<State>) => Observable<Action | Action[] | any> = switchMap(() => of(null)),
     { dispatch }: { dispatch: boolean } = { dispatch: false }
   ) {
     return this.actions$.pipe(
@@ -262,14 +250,14 @@ export class FeatureStoreEffects<State extends {}> {
           })
         )
       ),
-      mergeMap((actions: ActionExtended<any, any> | ActionExtended<any, any>[] | any) =>
+      mergeMap((actions: Action | Action[] | any) =>
         _of([
           featureStore.setStatus({
             featureStoreKey: this.featureStoreOptions.featureStoreKey,
             status: FeatureStoreStatus.Ready
           })
         ]).pipe(
-          foldLeftOn<any, any, ActionExtended<any, any>[], any>(() => dispatch && !isEmpty(actions), append(actions)),
+          foldLeftOn<any, any, Action[], any>(() => dispatch && !isEmpty(actions), append(actions)),
           compact
         )
       )
@@ -354,25 +342,23 @@ export class FeatureStoreEffects<State extends {}> {
       ofType(featureStore.updateParamsFromForm),
       filter(action => action.featureStoreKey === this.featureStoreOptions.featureStoreKey),
       map(action => action.values as Partial<State>),
-      withLatestFrom(
-        this.featureStoreFacade.stateWithoutMetaData$,
-        this.featureStoreFacade.referenceState$,
-        this.routerFacade.routesWithSegments$
-      ),
-      filter(([, , , segments]) =>
-        FeatureStoreEffectHelper.matchesFeatureStoreKey(this.featureStoreOptions.featureStoreKey, segments)
+      withLatestFrom(this.featureStoreFacade.stateWithoutMetaData$, this.featureStoreFacade.referenceState$),
+      map(([newParams, currentState, referenceState]) => [
+        newParams,
+        currentState,
+        referenceState,
+        FeatureStoreRouter.extractRoutesWithSegments(this.router.routerState.snapshot)
+      ]),
+      filter(([, , , segments]: [Partial<State>, Partial<State>, Partial<State>, RouterRoute[]]) =>
+        FeatureStoreRouter.matchesFeatureStoreKey(this.featureStoreOptions.featureStoreKey, segments)
       ),
       map(([newParams, currentState, referenceState, segments]) =>
-        FeatureStoreEffectHelper.createPath(this.featureStoreOptions, segments, currentState, referenceState, newParams)
+        FeatureStoreRouter.createPath(this.featureStoreOptions, segments, currentState, referenceState, newParams)
       ),
-      withLatestFrom(this.routerFacade.queryParams$),
-      tap(([path, query]) =>
-        this.routerFacade.go({
-          path,
-          query,
-          extras: { state: { ignoreLoadingBar: true } }
-        })
-      )
+      tap(path => {
+        const queryParams = FeatureStoreRouter.extractQueryParams(this.router.routerState.snapshot)
+        this.router.navigate(path, { queryParams, state: { ignoreLoadingBar: true } })
+      })
     )
   }
 
@@ -387,13 +373,15 @@ export class FeatureStoreEffects<State extends {}> {
   public updateStoreFromParams(formatter: (state: Partial<State>) => Partial<State> = identity) {
     return this.actions$.pipe(
       ofType(ROUTER_NAVIGATION),
-      map((action: RouterNavigationAction<RouterStateUrl>) => action.payload.routerState.routesWithSegments),
+      map(({ routerState }: { routerState: FeatureStoreRouterStoreState }) =>
+        FeatureStoreRouter.extractRoutesWithSegments(routerState)
+      ),
       map((segments: RouterRoute[]) => ({
-        matchesFeatureStoreKey: FeatureStoreEffectHelper.matchesFeatureStoreKey(
+        matchesFeatureStoreKey: FeatureStoreRouter.matchesFeatureStoreKey(
           this.featureStoreOptions.featureStoreKey,
           segments
         ),
-        parametersByFeatureStoreKey: FeatureStoreEffectHelper.getParametersByFeatureStoreKey(
+        parametersByFeatureStoreKey: FeatureStoreRouter.getParametersByFeatureStoreKey(
           this.featureStoreOptions.featureStoreKey,
           segments
         )
@@ -446,10 +434,10 @@ export class FeatureStoreEffectsFactory {
   private readonly instanceCache = new Map()
 
   public constructor(
-    private readonly featureStoreFramework: FeatureStoreFramework,
     private readonly actions$: Actions,
-    private readonly routerFacade: RouterFacade,
     private readonly featureStoreFacadeFactory: FeatureStoreFacadeFactory,
+    private readonly featureStoreFramework: FeatureStoreFramework,
+    private readonly router: Router,
     private readonly store: Store<any>
   ) {}
 
@@ -459,10 +447,10 @@ export class FeatureStoreEffectsFactory {
       this.instanceCache.set(
         featureStoreKey,
         new FeatureStoreEffects<State>(
-          featureStoreOptions,
-          this.featureStoreFacadeFactory.getFacade(featureStoreKey),
           this.actions$,
-          this.routerFacade,
+          this.featureStoreFacadeFactory.getFacade(featureStoreKey),
+          featureStoreOptions,
+          this.router,
           this.store
         )
       )

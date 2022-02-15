@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core'
 import { ActivatedRouteSnapshot, CanDeactivate, RouterStateSnapshot, UrlTree } from '@angular/router'
-import { CustomRouterStateSerializer } from '@elium/shared/data-router'
 import { Nullable } from '@mondosha1/nullable'
 import { firstValue } from '@mondosha1/observable'
 import { isNil } from 'lodash/fp'
-import { FeatureStoreEffectHelper } from './feature-store-effects.helper'
 import { FeatureStoreFacadeFactory } from './feature-store.facade'
+import { FeatureStoreRouter } from './feature-store.router'
 import { ValidationStatus } from './feature-store.state'
 
 @Injectable()
@@ -23,8 +22,8 @@ export class SubmitBeforeLeavingGuard<Component> implements CanDeactivate<Compon
     }
 
     const featureStoreFacade = this.featureStoreFacadeFactory.getFacade(currentRoute.data.featureStoreKey)
-    const currentRouteHash = await firstValue(featureStoreFacade.routeHash$)
-    const nextRouteHash = this.getNextRouteHash(nextState, currentRoute)
+    const currentRouteHash = FeatureStoreRouter.getRouteHash(currentRoute.data.featureStoreKey, currentState)
+    const nextRouteHash = FeatureStoreRouter.getRouteHash(currentRoute.data.featureStoreKey, nextState)
     if (currentRouteHash === nextRouteHash) {
       return true
     }
@@ -32,13 +31,5 @@ export class SubmitBeforeLeavingGuard<Component> implements CanDeactivate<Compon
     const validationStatus: Nullable<ValidationStatus> = await firstValue(featureStoreFacade.validationStatus$)
     featureStoreFacade.askForValidation(true)
     return validationStatus !== ValidationStatus.Error
-  }
-
-  private getNextRouteHash(nextState: RouterStateSnapshot, currentRoute: ActivatedRouteSnapshot): Nullable<string> {
-    const nextRouterStateUrl = CustomRouterStateSerializer.snapshotToRouterStateUrl(nextState)
-    return FeatureStoreEffectHelper.generateRouteHash(
-      currentRoute.data.featureStoreKey,
-      nextRouterStateUrl.routesWithSegments
-    )
   }
 }

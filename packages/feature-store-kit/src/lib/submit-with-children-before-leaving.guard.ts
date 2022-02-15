@@ -1,17 +1,16 @@
 import { Injectable } from '@angular/core'
 import { ActivatedRouteSnapshot, CanDeactivate, RouterStateSnapshot } from '@angular/router'
-import { CustomRouterStateSerializer, RouterState } from '@elium/shared/data-router'
 import { append } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
 import { of } from '@mondosha1/core'
 import { Nullable } from '@mondosha1/nullable'
-import { firstValue, firstValues } from '@mondosha1/observable'
+import { firstValues } from '@mondosha1/observable'
 import { select, Store } from '@ngrx/store'
 import { forEach, includes, isNil, map, thru } from 'lodash/fp'
 import { Observable } from 'rxjs'
-import { FeatureStoreEffectHelper } from './feature-store-effects.helper'
 import * as featureStore from './feature-store.actions'
 import { FeatureStoreFramework } from './feature-store.framework'
+import { FeatureStoreRouter } from './feature-store.router'
 import { featureStoreQuery } from './feature-store.selectors'
 import { FeatureStoreModuleOptions, FeatureStoreState, ValidationStatus } from './feature-store.state'
 
@@ -19,7 +18,7 @@ import { FeatureStoreModuleOptions, FeatureStoreState, ValidationStatus } from '
 export class SubmitWithChildrenBeforeLeavingGuard<Component> implements CanDeactivate<Component> {
   public constructor(
     protected readonly featureStoreFramework: FeatureStoreFramework,
-    protected readonly store: Store<FeatureStoreState<Component> & RouterState>
+    protected readonly store: Store<FeatureStoreState<Component>>
   ) {}
 
   public async canDeactivate(
@@ -32,10 +31,8 @@ export class SubmitWithChildrenBeforeLeavingGuard<Component> implements CanDeact
       throw new Error('Feature store key is missing from route data')
     }
 
-    const currentRouteHash = await firstValue(
-      this.store.pipe(select(featureStoreQuery.getRouteHash(), { featureStoreKey: currentRoute.data.featureStoreKey }))
-    )
-    const nextRouteHash = this.getNextRouteHash(nextState, currentRoute)
+    const currentRouteHash = FeatureStoreRouter.getRouteHash(currentRoute.data.featureStoreKey, currentState)
+    const nextRouteHash = FeatureStoreRouter.getRouteHash(currentRoute.data.featureStoreKey, nextState)
     if (currentRouteHash === nextRouteHash) {
       return true
     }
@@ -53,14 +50,6 @@ export class SubmitWithChildrenBeforeLeavingGuard<Component> implements CanDeact
       forEach((featureStoreKey: string) =>
         this.store.dispatch(featureStore.askForValidation({ featureStoreKey, askForValidation: true }))
       )
-    )
-  }
-
-  private getNextRouteHash(nextState: RouterStateSnapshot, currentRoute: ActivatedRouteSnapshot): Nullable<string> {
-    const nextRouterStateUrl = CustomRouterStateSerializer.snapshotToRouterStateUrl(nextState)
-    return FeatureStoreEffectHelper.generateRouteHash(
-      currentRoute.data.featureStoreKey,
-      nextRouterStateUrl.routesWithSegments
     )
   }
 

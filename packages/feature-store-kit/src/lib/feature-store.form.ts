@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core'
 import { AbstractControl, AsyncValidatorFn, FormArray, FormBuilder, FormGroup } from '@angular/forms'
-import { tap } from '@elium/shared/util'
 import { markFormAndDescendantsAsDirty } from '@elium/shared/util-angular'
 import { append, EMPTY_ARRAY, emptyArray, wrapIntoArray } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
@@ -35,6 +34,7 @@ import {
   size,
   some,
   split,
+  tap as _tap,
   thru
 } from 'lodash/fp'
 import { Observable } from 'rxjs'
@@ -48,6 +48,7 @@ import {
   startWith,
   switchMap,
   takeUntil,
+  tap,
   withLatestFrom
 } from 'rxjs/operators'
 import { F, O, S } from 'ts-toolbelt'
@@ -402,7 +403,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
           )
         }
       }),
-      tap(() => {
+      _tap(() => {
         if (isFormGroupDisabled) {
           formGroup.disable({ emitEvent: false })
         }

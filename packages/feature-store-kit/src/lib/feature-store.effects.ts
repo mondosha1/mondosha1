@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core'
 import { RouterFacade, RouterRoute, RouterStateUrl } from '@elium/shared/data-router'
-import { tap } from '@elium/shared/util'
 import { ActionExtended } from '@elium/shared/util-angular'
 import { append } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
@@ -35,6 +34,7 @@ import {
   mergeMap,
   pairwise,
   switchMap,
+  tap,
   withLatestFrom
 } from 'rxjs/operators'
 import { FeatureStoreEffectHelper } from './feature-store-effects.helper'

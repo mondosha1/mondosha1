@@ -1,8 +1,7 @@
 import { Inject, Injectable, Optional } from '@angular/core'
-import { tap } from '@elium/shared/util'
 import { append } from '@mondosha1/array'
 import { of } from '@mondosha1/core'
-import { find, isNil, some, uniq } from 'lodash/fp'
+import { find, isNil, some, tap, uniq } from 'lodash/fp'
 import { FEATURE_STORE_OPTIONS, FeatureStoreModuleOptions } from './feature-store.state'
 
 @Injectable()

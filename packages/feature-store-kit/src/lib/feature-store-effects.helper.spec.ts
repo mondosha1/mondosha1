@@ -1,4 +1,4 @@
-import { Structure } from '@mondosha1/feature-store-kit'
+import { Structure } from './feature-store.structure'
 import { deepFreeze } from '@mondosha1/object'
 import { FeatureStoreEffectHelper } from './feature-store-effects.helper'
 import {

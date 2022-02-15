@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core'
 import { RouterFacade, RouterRoute, RouterStateUrl } from '@elium/shared/data-router'
-import { tap, ValidationStatus } from '@elium/shared/util'
+import { tap } from '@elium/shared/util'
 import { ActionExtended } from '@elium/shared/util-angular'
 import { append } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
@@ -30,7 +30,6 @@ import {
   distinctUntilChanged,
   filter,
   first,
-  flatMap,
   map,
   mapTo,
   mergeMap,
@@ -43,7 +42,12 @@ import * as featureStore from './feature-store.actions'
 import { FeatureStoreFacade, FeatureStoreFacadeFactory } from './feature-store.facade'
 import { FeatureStoreFramework } from './feature-store.framework'
 import { featureStoreQuery } from './feature-store.selectors'
-import { FeatureStoreModuleOptions, FeatureStoreState, FeatureStoreStatus } from './feature-store.state'
+import {
+  FeatureStoreModuleOptions,
+  FeatureStoreState,
+  ValidationStatus,
+  FeatureStoreStatus
+} from './feature-store.state'
 import { FeatureStoreStructure } from './feature-store.structure'
 
 export class FeatureStoreEffects<State extends {}> {
@@ -210,7 +214,7 @@ export class FeatureStoreEffects<State extends {}> {
         ([prevRouteHash, currRouteHash]: [string, string]) => !isNil(prevRouteHash) && currRouteHash !== prevRouteHash
       ),
       this.waitForStoreReadiness(),
-      flatMap(() => _of(this.parentAndChildren).pipe(_map(featureStoreKey => featureStore.reset({ featureStoreKey }))))
+      mergeMap(() => _of(this.parentAndChildren).pipe(_map(featureStoreKey => featureStore.reset({ featureStoreKey }))))
     )
   }
 

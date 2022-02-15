@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core'
 import { AbstractControl, AsyncValidatorFn, FormArray, FormBuilder, FormGroup } from '@angular/forms'
-import { tap, ValidationStatus } from '@elium/shared/util'
+import { tap } from '@elium/shared/util'
 import { markFormAndDescendantsAsDirty } from '@elium/shared/util-angular'
 import { append, EMPTY_ARRAY, emptyArray, wrapIntoArray } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
@@ -53,7 +53,7 @@ import {
 import { F, O, S } from 'ts-toolbelt'
 import { FeatureStoreFacade, FeatureStoreFacadeFactory } from './feature-store.facade'
 import { FeatureStoreFramework } from './feature-store.framework'
-import { FeatureStoreModuleOptions, FeatureStoreState } from './feature-store.state'
+import { FeatureStoreModuleOptions, FeatureStoreState, ValidationStatus } from './feature-store.state'
 import {
   FeatureStoreStructure,
   Field,

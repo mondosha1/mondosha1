@@ -1,5 +1,5 @@
 import { routerQuery, RouterRoute } from '@elium/shared/data-router'
-import { tap, ValidationStatus } from '@elium/shared/util'
+import { tap } from '@elium/shared/util'
 import { IMap, of } from '@mondosha1/core'
 import { foldRight } from '@mondosha1/nullable'
 import { get } from '@mondosha1/object'
@@ -10,7 +10,8 @@ import {
   FeatureStoreFormState,
   FeatureStoreMetaState,
   FeatureStoreState,
-  FeatureStoreStatus
+  FeatureStoreStatus,
+  ValidationStatus
 } from './feature-store.state'
 
 const getRootState = <State extends {}>(state: IMap<FeatureStoreState<State>>): FeatureStoreState<State> | null =>

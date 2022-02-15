@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core'
 import { ActivatedRouteSnapshot, CanDeactivate, RouterStateSnapshot } from '@angular/router'
 import { CustomRouterStateSerializer, RouterState } from '@elium/shared/data-router'
-import { ValidationStatus } from '@elium/shared/util'
 import { append } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
 import { of } from '@mondosha1/core'
@@ -14,7 +13,7 @@ import { FeatureStoreEffectHelper } from './feature-store-effects.helper'
 import * as featureStore from './feature-store.actions'
 import { FeatureStoreFramework } from './feature-store.framework'
 import { featureStoreQuery } from './feature-store.selectors'
-import { FeatureStoreModuleOptions, FeatureStoreState } from './feature-store.state'
+import { FeatureStoreModuleOptions, FeatureStoreState, ValidationStatus } from './feature-store.state'
 
 @Injectable()
 export class SubmitWithChildrenBeforeLeavingGuard<Component> implements CanDeactivate<Component> {

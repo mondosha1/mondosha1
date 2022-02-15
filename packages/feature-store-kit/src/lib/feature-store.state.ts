@@ -1,5 +1,4 @@
 import { InjectionToken } from '@angular/core'
-import { ValidationStatus } from '@elium/shared/util'
 import { extendsDeep } from '@mondosha1/object'
 import * as deepFreeze from 'deep-freeze'
 import { Structure } from './feature-store.structure'
@@ -54,4 +53,11 @@ export interface FeatureStoreModuleOptions<State extends {}, RichState extends S
   structurePathsForForm?: readonly string[]
   structurePathsForParams?: readonly string[]
   formatter?: (newState: Partial<State>, oldState: Partial<State>, richState: Partial<RichState>) => Partial<State>
+}
+
+export enum ValidationStatus {
+  Pristine = 'pristine',
+  Valid = 'valid',
+  Warning = 'warning',
+  Error = 'error'
 }

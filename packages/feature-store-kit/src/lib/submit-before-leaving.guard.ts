@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core'
 import { ActivatedRouteSnapshot, CanDeactivate, RouterStateSnapshot, UrlTree } from '@angular/router'
 import { CustomRouterStateSerializer } from '@elium/shared/data-router'
-import { ValidationStatus } from '@elium/shared/util'
 import { Nullable } from '@mondosha1/nullable'
 import { firstValue } from '@mondosha1/observable'
 import { isNil } from 'lodash/fp'
 import { FeatureStoreEffectHelper } from './feature-store-effects.helper'
 import { FeatureStoreFacadeFactory } from './feature-store.facade'
+import { ValidationStatus } from './feature-store.state'
 
 @Injectable()
 export class SubmitBeforeLeavingGuard<Component> implements CanDeactivate<Component> {

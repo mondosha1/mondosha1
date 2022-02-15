@@ -1,10 +1,9 @@
-import { ValidationStatus } from '@elium/shared/util'
 import { createAction } from '@ngrx/store'
 import { of } from '@mondosha1/core'
 import { defaultsDeep, extend, identity } from 'lodash/fp'
 import * as featureStoreActions from './feature-store.actions'
 import { featureStoreReducer } from './feature-store.reducer'
-import { FeatureStoreState, FeatureStoreStatus, withFeatureStoreState } from './feature-store.state'
+import { FeatureStoreState, FeatureStoreStatus, ValidationStatus, withFeatureStoreState } from './feature-store.state'
 
 describe('Feature store reducer', () => {
   const CAR_FEATURE_STORE_KEY: string = 'car'

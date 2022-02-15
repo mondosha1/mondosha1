@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core'
 import { RouterState } from '@elium/shared/data-router'
-import { ValidationStatus } from '@elium/shared/util'
 import { Nullable } from '@mondosha1/nullable'
 import { select, Store } from '@ngrx/store'
 import { Observable } from 'rxjs'
 import * as featureStore from './feature-store.actions'
 import { featureStoreQuery } from './feature-store.selectors'
-import { FeatureStoreFormState, FeatureStoreState, FeatureStoreStatus } from './feature-store.state'
+import { FeatureStoreFormState, FeatureStoreState, FeatureStoreStatus, ValidationStatus } from './feature-store.state'
 
 export class FeatureStoreFacade<State extends {}, WithMetaState = FeatureStoreState<State>> {
   public readonly askForValidation$: Observable<Nullable<boolean>> = this.store.pipe(

@@ -1,4 +1,3 @@
-import { EXPR_EVAL_EXPRESSION } from '@elium/shared/util'
 import { defaultToEmptyArray, difference, emptyArray, Many, prepend } from '@mondosha1/array'
 import { parseBool } from '@mondosha1/boolean'
 import { IMap, of } from '@mondosha1/core'
@@ -44,6 +43,7 @@ import {
   unzip,
   zipObjectDeep
 } from 'lodash/fp'
+import { EXPR_EVAL_EXPRESSION } from './feature-store.formula'
 import { FeatureStoreState } from './feature-store.state'
 
 export type Structure<State extends {}> = {

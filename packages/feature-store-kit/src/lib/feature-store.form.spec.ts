@@ -8,7 +8,6 @@ import {
   ReactiveFormsModule,
   ValidationErrors
 } from '@angular/forms'
-import { EXPR_EVAL_EXPRESSION } from '@elium/shared/util'
 import { of as _of } from '@mondosha1/core'
 import { Nullable } from '@mondosha1/nullable'
 import { get, PartialDeep } from '@mondosha1/object'
@@ -21,6 +20,7 @@ import { FeatureStoreFormBuilder, FeatureStoreFormFactory } from './feature-stor
 import { FeatureStoreModule } from './feature-store.module'
 import { withFeatureStoreState } from './feature-store.state'
 import { FieldGroup, Structure, ValidatorName } from './feature-store.structure'
+import { formula } from './feature-store.formula'
 
 const CAR_FEATURE_STORE_KEY = 'car'
 
@@ -678,7 +678,7 @@ describe('FeatureStoreFormFactory', () => {
           model: {
             type: 'string',
             validators: {
-              formula: 'model != "Clio"' as EXPR_EVAL_EXPRESSION,
+              formula: formula`model != "Clio"`,
               message: 'Wrong car model, "Clio" expected'
             }
           }
@@ -707,8 +707,7 @@ describe('FeatureStoreFormFactory', () => {
             model: {
               type: 'string',
               validators: {
-                formula:
-                  'OR(AND(brand == "Peugeot", model == "Clio"), AND(brand == "Renault", model == "206"))' as EXPR_EVAL_EXPRESSION,
+                formula: formula`OR(AND(brand == "Peugeot", model == "Clio"), AND(brand == "Renault", model == "206"))`,
                 message: 'Wrong car model for the selected brand'
               }
             }
@@ -746,7 +745,7 @@ describe('FeatureStoreFormFactory', () => {
                   type: 'string',
                   validators: {
                     name: ValidatorName.Required,
-                    condition: 'brand == "Peugeot"' as EXPR_EVAL_EXPRESSION
+                    condition: formula`brand == "Peugeot"`
                   }
                 }
               },

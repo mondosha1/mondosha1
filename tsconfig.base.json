@@ -16,7 +16,20 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {
-      "@mondosha1/core": ["packages/core/src/index.ts"]
+      "@mondosha1/array": ["packages/array/src/index.ts"],
+      "@mondosha1/boolean": ["packages/boolean/src/index.ts"],
+      "@mondosha1/core": ["packages/core/src/index.ts"],
+      "@mondosha1/date": ["packages/date/src/index.ts"],
+      "@mondosha1/decorators": ["packages/decorators/src/index.ts"],
+      "@mondosha1/either": ["packages/either/src/index.ts"],
+      "@mondosha1/feature-store-kit": ["packages/feature-store-kit/src/index.ts"],
+      "@mondosha1/image": ["packages/image/src/index.ts"],
+      "@mondosha1/jest": ["packages/jest/src/index.ts"],
+      "@mondosha1/nullable": ["packages/nullable/src/index.ts"],
+      "@mondosha1/number": ["packages/number/src/index.ts"],
+      "@mondosha1/object": ["packages/object/src/index.ts"],
+      "@mondosha1/observable": ["packages/observable/src/index.ts"],
+      "@mondosha1/string": ["packages/string/src/index.ts"]
     },
     "removeComments": true,
     "skipLibCheck": true,

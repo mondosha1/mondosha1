@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": "../../",
-    "outDir": "../../dist/libs/shared/framework-feature-store"
+    "outDir": "../../dist/packages/feature-store-kit"
   },
   "include": [],
   "files": [],

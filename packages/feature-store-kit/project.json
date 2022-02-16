@@ -18,6 +18,12 @@
         "tsConfig": "packages/feature-store-kit/tsconfig.lib.json"
       }
     },
+    "bump": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "command": "cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\", ]//g' | xargs -I '{}' sed -i '' 's/\"version\":[ ]*\"[^\"]*\"/\"version\": \"{}\"/g' packages/feature-store-kit/package.json"
+      }
+    },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
@@ -27,6 +33,18 @@
         ]
       },
       "outputs": ["{options.outputFile}"]
+    },
+    "publish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "dependsOn": [
+        {
+          "target": "bump",
+          "projects": "self"
+        }
+      ],
+      "options": {
+        "command": "npm pack | npm publish"
+      }
     },
     "test": {
       "executor": "@nrwl/jest:jest",

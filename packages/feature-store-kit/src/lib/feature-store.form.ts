@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core'
 import { AbstractControl, AsyncValidatorFn, FormArray, FormBuilder, FormGroup } from '@angular/forms'
-import { markFormAndDescendantsAsDirty } from '@elium/shared/util-angular'
 import { append, EMPTY_ARRAY, emptyArray, wrapIntoArray } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
 import { IMap, of } from '@mondosha1/core'
@@ -433,4 +432,13 @@ export class FeatureStoreFormFactory {
     }
     return this.instanceCache.get(featureStoreKey)
   }
+}
+
+export function markFormAndDescendantsAsDirty(control: AbstractControl | FormGroup): void {
+  if (control instanceof FormGroup || control instanceof FormArray) {
+    // eslint-disable-next-line  ban/ban
+    of(control.controls).pipe(forEach((c: AbstractControl) => markFormAndDescendantsAsDirty(c)))
+  }
+  control.markAsDirty()
+  control.updateValueAndValidity()
 }

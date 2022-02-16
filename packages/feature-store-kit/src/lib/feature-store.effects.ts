@@ -75,7 +75,6 @@ export class FeatureStoreEffects<State extends {}> {
   public initStore() {
     return this.actions$.pipe(
       ofType(featureStore.initStore),
-      map(action => action.values),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
       map(({ values }) => values),
       tap(values => this.featureStoreFacade.setReferenceState(values)),
@@ -181,7 +180,7 @@ export class FeatureStoreEffects<State extends {}> {
   public resetStoreOnLeave() {
     return this.actions$.pipe(
       ofType(ROUTER_NAVIGATION),
-      map(({ routerState }: { routerState: FeatureStoreRouterStoreState }) =>
+      map(({ payload: { routerState } }: { payload: { routerState: FeatureStoreRouterStoreState } }) =>
         FeatureStoreRouter.getRouteHash(this.featureStoreOptions.featureStoreKey, routerState)
       ),
       pairwise(),
@@ -196,7 +195,7 @@ export class FeatureStoreEffects<State extends {}> {
   public resetStoreWithChildrenOnLeave() {
     return this.actions$.pipe(
       ofType(ROUTER_NAVIGATION),
-      map(({ routerState }: { routerState: FeatureStoreRouterStoreState }) =>
+      map(({ payload: { routerState } }: { payload: { routerState: FeatureStoreRouterStoreState } }) =>
         FeatureStoreRouter.getRouteHash(this.featureStoreOptions.featureStoreKey, routerState)
       ),
       pairwise(),
@@ -373,7 +372,7 @@ export class FeatureStoreEffects<State extends {}> {
   public updateStoreFromParams(formatter: (state: Partial<State>) => Partial<State> = identity) {
     return this.actions$.pipe(
       ofType(ROUTER_NAVIGATION),
-      map(({ routerState }: { routerState: FeatureStoreRouterStoreState }) =>
+      map(({ payload: { routerState } }: { payload: { routerState: FeatureStoreRouterStoreState } }) =>
         FeatureStoreRouter.extractRoutesWithSegments(routerState)
       ),
       map((segments: RouterRoute[]) => ({

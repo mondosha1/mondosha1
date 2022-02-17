@@ -1,20 +1,11 @@
 import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn, Validators } from '@angular/forms'
-import {
-  EMAIL_PATTERN,
-  HTTP_URL_PATTERN,
-  isEmail,
-  isInteger,
-  isNumber,
-  isUrl,
-  minDate,
-  wrapIntoObservable
-} from '@elium/shared/util-angular'
 import { Many } from '@mondosha1/array'
 import { IMap, of } from '@mondosha1/core'
 import { Lazy } from '@mondosha1/decorators'
 import { isLeft } from '@mondosha1/either'
 import { defaultToNull } from '@mondosha1/nullable'
 import { get, toString } from '@mondosha1/object'
+import { wrapIntoObservable } from '@mondosha1/observable'
 import { format, startOfDay } from 'date-fns/fp'
 import { Parser } from 'expr-eval'
 import {
@@ -43,6 +34,7 @@ import {
 } from 'lodash/fp'
 import { forkJoin, Observable } from 'rxjs'
 import { first, map } from 'rxjs/operators'
+import { HTTP_URL_PATTERN, isInteger, isNumber, isUrl } from './feature-store.custom-validators'
 import {
   CustomValidator,
   DefaultValidator,
@@ -76,7 +68,6 @@ import {
  */
 export class FeatureStoreValidators {
   private static readonly customFunctions = {
-    ISEMAIL: value => new RegExp(EMAIL_PATTERN).test(value),
     ISEMPTY: value => (_isNumber(value) ? value === 0 : isEmpty(value)),
     ISINTEGER: _isInteger,
     ISNUMBER: isFinite,
@@ -229,7 +220,7 @@ export class FeatureStoreValidators {
   ): ValidatorFn | never {
     switch (name) {
       case ValidatorName.Email:
-        return isEmail()
+        return Validators.email
       case ValidatorName.Integer:
         return isInteger()
       case ValidatorName.Max:
@@ -238,8 +229,6 @@ export class FeatureStoreValidators {
         return Validators.maxLength(this.checkValidatorParam(params, 'maxLength'))
       case ValidatorName.Min:
         return Validators.min(this.checkValidatorParam(params, 'min'))
-      case ValidatorName.MinDate:
-        return minDate(this.checkValidatorParam(params, 'date'))
       case ValidatorName.MinLength:
         return Validators.minLength(this.checkValidatorParam(params, 'minLength'))
       case ValidatorName.Number:

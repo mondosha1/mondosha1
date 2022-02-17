@@ -397,11 +397,6 @@ Below are the set of functions are available in formulas.
    <td>Description</td>
   </tr>
   <tr>
-   <td><strong>ISEMAIL</strong></td>
-   <td>boolean</td>
-   <td>Return true if the given expression is a valid email address</td>
-  </tr>
-  <tr>
    <td><strong>ISEMPTY</strong></td>
    <td>boolean</td>
    <td>Return true if the given expression is empty (<code>null</code>, <code>undefined</code>, <code>false</code>, <code>0</code>, <code>NaN</code>, <code>''</code>, <code>[]</code>)</td>

@@ -1,7 +1,6 @@
 import { defaultToEmptyArray, difference, emptyArray, Many, prepend } from '@mondosha1/array'
 import { negate, parseBool } from '@mondosha1/boolean'
 import { IMap, of } from '@mondosha1/core'
-import { ISO_DATE, ISO_DATETIME, MILLISECONDS_TIMESTAMP } from '@mondosha1/date'
 import { defaultToNull, foldOn, foldRightOn } from '@mondosha1/nullable'
 import { isNumeric } from '@mondosha1/number'
 import {
@@ -61,7 +60,6 @@ export enum ValidatorName {
   Max = 'Max',
   MaxLength = 'MaxLength',
   Min = 'Min',
-  MinDate = 'MinDate',
   MinLength = 'MinLength',
   Number = 'Number', // eslint-disable-line id-blacklist,id-denylist
   Required = 'Required',
@@ -72,7 +70,6 @@ export interface ValidatorParams {
   [ValidatorName.Max]: { max: number }
   [ValidatorName.MaxLength]: { maxLength: number }
   [ValidatorName.Min]: { min: number }
-  [ValidatorName.MinDate]: { date: ISO_DATETIME | ISO_DATE | MILLISECONDS_TIMESTAMP }
   [ValidatorName.MinLength]: { minLength: number }
 }
 

@@ -18,8 +18,6 @@ concurrency:
 
 env:
   BUILD_ARTIFACTS: build-artifacts
-  BUILD_LIBRARIES: ${{ secrets.BUILD_LIBRARIES || 'false' }}
-  PUBLISH_LIBRARIES: ${{ secrets.PUBLISH_LIBRARIES || 'false' }}
   CACHED_PATHS: |
     node_modules
     cache/Cypress
@@ -42,6 +40,10 @@ jobs:
       GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
       GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
     steps:
+      - id: BUILD_LIBRARIES
+        run: echo "::set-output name=value::$(echo ${{ secrets.BUILD_LIBRARIES }} || '')"
+      - id: PUBLISH_LIBRARIES
+        run: echo "::set-output name=value::$(echo ${{ secrets.PUBLISH_LIBRARIES }} || '')"
       - id: GITHUB_HEAD_REF
         run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}})"
       - id: GITHUB_HEAD_SLUG
@@ -62,6 +64,8 @@ jobs:
         run: echo "::set-output name=value::$(echo ${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
       - name: Display vars
         run: |
+          echo "BUILD_LIBRARIES: ${{ steps.BUILD_LIBRARIES.outputs.value }}"
+          echo "PUBLISH_LIBRARIES: ${{ steps.PUBLISH_LIBRARIES.outputs.value }}"
           echo "GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}"
           echo "GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}"
           echo "GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}"
@@ -131,21 +135,13 @@ jobs:
       deployTasksChunkSize: 5
     outputs:
       DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
-      HAS_DISTRIBUTED_TARGETS: ${{ join(fromJson(steps.DISTRIBUTED_TARGETS.outputs.value).tasks) != '' }}
       BUILD_TASKS: ${{ steps.BUILD_TASKS.outputs.value }}
-      HAS_BUILD_TASKS: ${{ join(fromJson(steps.BUILD_TASKS.outputs.value).tasks) != '' }}
       E2E_TASKS: ${{ steps.E2E_TASKS.outputs.value }}
-      HAS_E2E_TASKS: ${{ join(fromJson(steps.E2E_TASKS.outputs.value).tasks) != '' }}
       DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.value }}
-      HAS_DOCKER_BUILD_TASKS: ${{ join(fromJson(steps.DOCKER_BUILD_TASKS.outputs.value).tasks) != '' }}
       IT_TASKS: ${{ steps.IT_TASKS.outputs.value }}
-      HAS_IT_TASKS: ${{ join(fromJson(steps.IT_TASKS.outputs.value).tasks) != '' }}
       DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
-      HAS_DOCKER_TAG_TASKS: ${{ join(fromJson(steps.DOCKER_TAG_TASKS.outputs.value).tasks) != '' }}
       DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
-      HAS_DEPLOY_TASKS: ${{ join(fromJson(steps.DEPLOY_TASKS.outputs.value).tasks) != '' }}
       PUBLISH_TASKS: ${{ steps.PUBLISH_TASKS.outputs.value }}
-      HAS_PUBLISH_TASKS: ${{ (env.PUBLISH_LIBRARIES == 'true') && (join(fromJson(steps.PUBLISH_TASKS.outputs.value).tasks) != '') }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -164,7 +160,7 @@ jobs:
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js ${{ env.distributedTargets }} ${{ env.distributedChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate build targets
         id: BUILD_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ env.BUILD_LIBRARIES == 'true' && '--build-libraries' || '' }})"
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.BUILD_LIBRARIES != '' && '--build-libraries' || '' }})"
       - name: Calculate e2e targets
         id: E2E_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e ${{ env.e2eTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
@@ -220,7 +216,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: needs.calculate-targets.outputs.HAS_DISTRIBUTED_TARGETS == 'true'
+    if: join(fromJson(needs.calculate-targets.outputs.DISTRIBUTED_TARGETS).tasks) != ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DISTRIBUTED_TARGETS) }}
@@ -250,7 +246,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: needs.calculate-targets.outputs.HAS_BUILD_TASKS == 'true'
+    if: join(fromJson(needs.calculate-targets.outputs.BUILD_TASKS).tasks) != ''
     strategy:
       matrix: ${{ fromJson(needs.calculate-targets.outputs.BUILD_TASKS) }}
       fail-fast: false
@@ -272,7 +268,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: needs.calculate-targets.outputs.HAS_E2E_TASKS == 'true'
+    if: join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) != ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_TASKS) }}
@@ -309,7 +305,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, build]
-    if: needs.calculate-targets.outputs.HAS_PUBLISH_TASKS == 'true'
+    if: (needs.vars.outputs.PUBLISH_LIBRARIES != '') && (join(fromJson(needs.calculate-targets.outputs.PUBLISH_TASKS).tasks) != '')
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.PUBLISH_TASKS) }}
@@ -328,7 +324,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     needs: [vars, precheck, calculate-targets, build]
-    if: needs.calculate-targets.outputs.HAS_DOCKER_BUILD_TASKS == 'true'
+    if: join(fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS).tasks) != ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS) }}
@@ -348,7 +344,7 @@ jobs:
   it:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: needs.calculate-targets.outputs.HAS_IT_TASKS == 'true'
+    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) != ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.IT_TASKS) }}
@@ -364,7 +360,7 @@ jobs:
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --branch=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
 
   docker-tag:
-    if: (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'true' && always()
+    if: (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && join(fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS).tasks) != '' && always()
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build, e2e, it]
     strategy:
@@ -383,7 +379,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'true' && always()
+    if: github.ref == 'refs/heads/master' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) != '' && always()
     needs: [vars, calculate-targets, it, e2e]
     strategy:
       fail-fast: false
@@ -400,7 +396,7 @@ jobs:
 
   success:
     runs-on: ubuntu-latest
-    if: (needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'false' || needs.docker-tag.result == 'success') && (needs.calculate-targets.outputs.HAS_PUBLISH_TASKS == 'false' || needs.publish.result == 'success') && (github.ref != 'refs/heads/master' || needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'false' || needs.deploy.result == 'success') && always()
+    if: (join(fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS).tasks) == '' || needs.docker-tag.result == 'success') && ((needs.vars.outputs.PUBLISH_LIBRARIES == '') || (join(fromJson(needs.calculate-targets.outputs.PUBLISH_TASKS).tasks) == '') || needs.publish.result == 'success') && (github.ref != 'refs/heads/master' || join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) == '' || needs.deploy.result == 'success') && always()
     needs: [vars, docker-tag, publish, deploy]
     steps:
       - run: echo "Workflow succeeded"

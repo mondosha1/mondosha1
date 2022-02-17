@@ -27,10 +27,7 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "packages/feature-store-kit/**/*.ts",
-          "packages/feature-store-kit/src/**/*.html"
-        ]
+        "lintFilePatterns": ["packages/feature-store-kit/**/*.ts", "packages/feature-store-kit/src/**/*.html"]
       },
       "outputs": ["{options.outputFile}"]
     },

@@ -5,6 +5,7 @@ const targetsArg = process.argv[2]
 const chunkSizeArg = process.argv[3]
 const headRef = isGitHash(process.argv[4]) ? process.argv[4] : `origin/${process.argv[4]}`
 const baseRef = isGitHash(process.argv[5]) ? process.argv[5] : `origin/${process.argv[5]}`
+const excludeApps = extractListParams(process.argv, 'excludeApps')
 const noDeps = process.argv.includes('--no-deps')
 const nxArgs = headRef !== baseRef ? ` --head=${headRef} --base=${baseRef}` : '--all'
 
@@ -45,6 +46,7 @@ async function getTasksPerTarget(target, chunkSize, nxArgs) {
 
   return sortedTasks
     .filter(project => !noDeps || affectedApps.includes(project))
+    .filter(project => !excludeApps.includes(project))
     .reduce((res, task, i, tasks) => [...res, ...(i % chunkSize ? [] : [tasks.slice(i, i + chunkSize)])], [])
     .reduce((res, tasksChunk) => [...res, `${target}:${tasksChunk}`], [])
 }
@@ -97,4 +99,10 @@ function execAsync(cmd) {
 
 function isGitHash(hash) {
   return /^[0-9a-f]{7,40}$/i.test(hash)
+}
+
+function extractListParams(argv, paramName) {
+  const paramHeader = `--${paramName}=`
+  const param = argv.find(item => item.startsWith(paramHeader))
+  return param ? param.split(paramHeader)[1].split(' ')[0].split(',') : []
 }

@@ -67,22 +67,26 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Cache node modules
-        id: cache
+        id: cache-node-modules
         uses: actions/cache@v2
         with:
-          path: |
-            node_modules
-            ${{ env.CYPRESS_CACHE_FOLDER }}
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
+      - name: Cache Cypress
+        id: cache-cypress
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CYPRESS_CACHE_FOLDER }}
+          key: ${{ env.CYPRESS_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - uses: actions/setup-node@v1
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-cypress.outputs.cache-hit != 'true'
         with:
           node-version: 12.16.3
       - name: npm set token
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-cypress.outputs.cache-hit != 'true'
         run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: npm install
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-cypress.outputs.cache-hit != 'true'
         run: rm -rf node_modules ; npm install --from-lock-file --prefer-offline --no-audit --unsafe-perm
 
   precheck:
@@ -96,7 +100,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: copy eslint-config
         run: cp -R tools/eslint-config ./node_modules/@elium
       - name: Compute Nx arguments
@@ -143,7 +147,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: copy eslint-config
         run: cp -R tools/eslint-config ./node_modules/@elium
       - name: Calculate distributed targets
@@ -214,7 +218,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
       - name: Upload test artifacts
@@ -244,7 +248,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
 
@@ -265,17 +269,15 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v2
         with:
-          path: |
-            node_modules
-            ${{ env.CYPRESS_CACHE_FOLDER }}
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: npm set token
         run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: Cache Cypress
         uses: actions/cache@v2
         with:
           path: ${{ env.CYPRESS_CACHE_FOLDER }}
-          key: ${{ env.CYPRESS_CACHE }}
+          key: ${{ env.CYPRESS_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: nx ${{ matrix.tasks }}
         uses: cypress-io/github-action@v2
         with:
@@ -301,7 +303,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: npm set token for installing dedicated Node apps dependencies
         run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
@@ -321,7 +323,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --branch=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
@@ -339,7 +341,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --tag=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
@@ -357,7 +359,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ env.DEPENDENCIES_CACHE }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: nx deploy
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
 

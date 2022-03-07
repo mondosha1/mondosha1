@@ -39,7 +39,7 @@ jobs:
       - id: GITHUB_HEAD_REF
         run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}})"
       - id: GITHUB_HEAD_SLUG
-        run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
+        run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_HEAD_REF.outputs.value }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
       - uses: nrwl/last-successful-commit-action@v1
         id: last_successful_commit
         with:
@@ -53,7 +53,7 @@ jobs:
           LAST_SUCCESSFUL_COMMIT_COMMIT_HASH="${{ steps.last_successful_commit.outputs.commit_hash }}"
           echo "::set-output name=value::$(echo ${REBUILD_ALL_BASE_REF:-${LAST_SUCCESSFUL_COMMIT_COMMIT_HASH:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}}})"
       - id: GITHUB_BASE_SLUG
-        run: echo "::set-output name=value::$(echo ${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
+        run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_BASE_REF.outputs.value }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
       - name: Display vars
         run: |
           echo "GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}"
@@ -104,10 +104,10 @@ jobs:
       - name: copy eslint-config
         run: cp -R tools/eslint-config ./node_modules/@elium
       - name: Compute Nx arguments
+        if: needs.vars.outputs.GITHUB_HEAD_REF != needs.vars.outputs.GITHUB_BASE_REF
         run: |
           BASE_REF_WITH_PREFIX=$(if [[ ! "${{ needs.vars.outputs.GITHUB_BASE_REF }}" =~ ^[0-9a-f]{7,40}$ ]]; then echo "origin/"; fi)${{ needs.vars.outputs.GITHUB_BASE_REF }}
           echo "NX_ARGUMENTS=--base=$BASE_REF_WITH_PREFIX" >> $GITHUB_ENV
-        if: needs.vars.outputs.GITHUB_HEAD_REF != needs.vars.outputs.GITHUB_BASE_REF
       - name: nx ${{ matrix.target }}
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js format:check $NX_ARGUMENTS
       - name: nx ${{ matrix.target }}

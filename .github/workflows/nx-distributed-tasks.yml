@@ -81,7 +81,7 @@ jobs:
       - uses: actions/setup-node@v1
         if: steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-cypress.outputs.cache-hit != 'true'
         with:
-          node-version: 12.16.3
+          node-version: 14.14.0
       - name: npm set token
         if: steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-cypress.outputs.cache-hit != 'true'
         run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc

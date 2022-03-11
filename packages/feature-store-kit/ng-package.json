@@ -1,0 +1,15 @@
+{
+  "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "../../dist/packages/feature-store-kit",
+  "allowedNonPeerDependencies": [
+    "@angular/core",
+    "@angular/forms",
+    "@angular/localize",
+    "@angular/router",
+    "@ngrx/store",
+    "expr-eval"
+  ],
+  "lib": {
+    "entryFile": "src/index.ts"
+  }
+}

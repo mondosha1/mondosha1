@@ -1,7 +1,18 @@
 {
   "targets": {
     "build": {
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "dependencies"
+        },
+        {
+          "target": "bump",
+          "projects": "self"
+        }
+      ],
       "executor": "@nrwl/node:package",
+      "outputs": ["{options.outputPath}"],
       "configurations": {
         "production": {
           "tsConfig": "packages/jest/tsconfig.lib.prod.json"
@@ -15,6 +26,15 @@
         "tsConfig": "packages/jest/tsconfig.lib.json"
       }
     },
+    "bump": {
+      "executor": "@nrwl/workspace:run-commands",
+      "configurations": {
+        "production": {}
+      },
+      "options": {
+        "command": "cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\", ]//g' | xargs -I '{}' sed -i.bak 's/\"version\":[ ]*\"[^\"]*\"/\"version\": \"{}\"/g' packages/jest/package.json && rm -f packages/jest/package.json.bak"
+      }
+    },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
@@ -22,16 +42,33 @@
       },
       "outputs": ["{options.outputFile}"]
     },
+    "publish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "configurations": {
+        "production": {}
+      },
+      "options": {
+        "command": "npm pack | npm publish",
+        "cwd": "dist/packages/jest"
+      }
+    },
     "test": {
       "executor": "@nrwl/jest:jest",
       "options": {
         "jestConfig": "packages/jest/jest.config.js"
       },
       "outputs": ["coverage/packages/jest"]
+    },
+    "unpublish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "command": "cat package.json | sed -n -E 's/[ ]*\"name\":[ ]*\"([^\"]*)\",|[ ]*\"version\":[ ]*\"([^\"]*)\",/\\1\\2/p' | head -2 | sed 'N;s/\\n/@/' | xargs npm unpublish --force",
+        "cwd": "dist/packages/jest"
+      }
     }
   },
   "projectType": "library",
   "root": "packages/jest",
   "sourceRoot": "packages/jest/src",
-  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server"]
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server", "open-source:mondosha1"]
 }

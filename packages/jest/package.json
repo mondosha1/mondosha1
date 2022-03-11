@@ -1,4 +1,15 @@
 {
-  "name": "@elium/shared/util/jest",
-  "version": "0.0.1"
+  "name": "@mondosha1/jest",
+  "version": "1.0.0",
+  "dependencies": {
+    "tslib": "^2.0.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "peerDependencies": {
+    "lodash": "^4.0.0",
+    "rxjs": "^6.0.0"
+  }
 }

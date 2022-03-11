@@ -3,7 +3,7 @@
   "overrides": [
     {
       "files": ["*.ts"],
-      "extends": ["@mondosha1/eslint-config/global-next"],
+      "extends": ["mondosha1/global-next"],
       "parserOptions": {
         "project": ["packages/array/tsconfig.json", "packages/array/tsconfig.*?.json"]
       },

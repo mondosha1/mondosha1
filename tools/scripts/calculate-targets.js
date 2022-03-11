@@ -6,7 +6,7 @@ const chunkSizeArg = process.argv[3]
 const headRef = isGitHash(process.argv[4]) ? process.argv[4] : `origin/${process.argv[4]}`
 const baseRef = isGitHash(process.argv[5]) ? process.argv[5] : `origin/${process.argv[5]}`
 const excludeApps = extractListParams(process.argv, 'excludeApps')
-const noDeps = process.argv.includes('--no-deps')
+const buildLibraries = process.argv.includes('--build-libraries')
 const nxArgs = headRef !== baseRef ? ` --head=${headRef} --base=${baseRef}` : '--all'
 
 main()
@@ -45,7 +45,7 @@ async function getTasksPerTarget(target, chunkSize, nxArgs) {
   const sortedTasks = getSortedTasks(printAffectedCmd)
 
   return sortedTasks
-    .filter(project => !noDeps || affectedApps.includes(project))
+    .filter(project => target !== 'build' || buildLibraries || affectedApps.includes(project))
     .filter(project => !excludeApps.includes(project))
     .reduce((res, task, i, tasks) => [...res, ...(i % chunkSize ? [] : [tasks.slice(i, i + chunkSize)])], [])
     .reduce((res, tasksChunk) => [...res, `${target}:${tasksChunk}`], [])

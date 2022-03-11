@@ -5,7 +5,7 @@ module.exports = {
     meta: {
       docs: {
         description:
-          'Ensure all project define a minimal set of rule ("@elium/eslint-config/global"). This rule must be disabled in all implementation except the root eslintrc',
+          'Ensure all project define a minimal set of rule ("eslint-config-elium/global"). This rule must be disabled in all implementation except the root eslintrc',
         category: 'Possible Errors',
         recommended: false
       },
@@ -16,8 +16,7 @@ module.exports = {
         Program: function (node) {
           context.report({
             node,
-            message:
-              'Please implement at least our @elium/eslint-config/global extends in a custom .eslintrc.json for your app/lib.'
+            message: 'Please implement at least our elium/global extends in a custom .eslintrc.json for your app/lib.'
           })
         }
       }

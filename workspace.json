@@ -1,0 +1,26 @@
+{
+  "cli": {
+    "analytics": false,
+    "packageManager": "npm",
+    "warnings": {
+      "typescriptMismatch": false
+    }
+  },
+  "projects": {
+    "array": "packages/array",
+    "boolean": "packages/boolean",
+    "core": "packages/core",
+    "date": "packages/date",
+    "decorators": "packages/decorators",
+    "either": "packages/either",
+    "feature-store-kit": "packages/feature-store-kit",
+    "image": "packages/image",
+    "jest": "packages/jest",
+    "nullable": "packages/nullable",
+    "number": "packages/number",
+    "object": "packages/object",
+    "observable": "packages/observable",
+    "string": "packages/string"
+  },
+  "version": 2
+}

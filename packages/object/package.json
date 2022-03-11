@@ -1,7 +1,15 @@
 {
   "name": "@mondosha1/object",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "dependencies": {
     "tslib": "^2.0.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "peerDependencies": {
+    "lodash": "^4.0.0",
+    "ts-toolbelt": "^9.0.0"
   }
 }

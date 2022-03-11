@@ -1,5 +1,5 @@
 module.exports = {
-  extends: '@mondosha1/eslint-config/angular',
+  extends: 'mondosha1/angular',
   rules: {
     '@angular-eslint/prefer-on-push-component-change-detection': 'error',
     '@angular-eslint/no-input-rename': 'error',

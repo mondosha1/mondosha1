@@ -20,8 +20,9 @@ env:
   BUILD_ARTIFACTS: build-artifacts
   CYPRESS_CACHE: cache-cypress
   CYPRESS_CACHE_FOLDER: cache/Cypress
-  DEPENDENCIES_CACHE: cache-node-modules
-  DOCKER_REGISTRY: docker-internal.elium.io
+  DEPENDENCIES_CACHE: ${{ secrets.DEPENDENCIES_CACHE || 'cache-node-modules' }}
+  DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY || 'ghcr.io' }}
+  NPM_REGISTRY: ${{ secrets.NPM_REGISTRY || 'registry.npmjs.org' }}
   E2E_ARTIFACTS: e2e-artifacts
   TEST_ARTIFACTS: test-artifacts
   NG_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.S3_PROXY_AWS_ACCESS_KEY_ID }}
@@ -31,11 +32,17 @@ jobs:
   vars:
     runs-on: ubuntu-latest
     outputs:
+      BUILD_LIBRARIES: ${{ steps.BUILD_LIBRARIES.outputs.value }}
+      PUBLISH_LIBRARIES: ${{ steps.PUBLISH_LIBRARIES.outputs.value }}
       GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}
       GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}
       GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
       GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
     steps:
+      - id: BUILD_LIBRARIES
+        run: echo "::set-output name=value::$(echo ${{ secrets.BUILD_LIBRARIES }} || '')"
+      - id: PUBLISH_LIBRARIES
+        run: echo "::set-output name=value::$(echo ${{ secrets.PUBLISH_LIBRARIES }} || '')"
       - id: GITHUB_HEAD_REF
         run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}})"
       - id: GITHUB_HEAD_SLUG
@@ -56,6 +63,8 @@ jobs:
         run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_BASE_REF.outputs.value }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
       - name: Display vars
         run: |
+          echo "BUILD_LIBRARIES: ${{ steps.BUILD_LIBRARIES.outputs.value }}"
+          echo "PUBLISH_LIBRARIES: ${{ steps.PUBLISH_LIBRARIES.outputs.value }}"
           echo "GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}"
           echo "GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}"
           echo "GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}"
@@ -84,7 +93,7 @@ jobs:
           node-version: 14.14.0
       - name: npm set token
         if: steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-cypress.outputs.cache-hit != 'true'
-        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+        run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: npm install
         if: steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-cypress.outputs.cache-hit != 'true'
         run: rm -rf node_modules ; npm install --from-lock-file --prefer-offline --no-audit --unsafe-perm
@@ -97,21 +106,25 @@ jobs:
         with:
           fetch-depth: 0
       - name: Cache node modules
+        id: cache
         uses: actions/cache@v2
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
-      - name: copy eslint-config
-        run: cp -R tools/eslint-config ./node_modules/@elium
+      - name: Exit job if deps not cached yet
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: exit 1
       - name: Compute Nx arguments
         if: needs.vars.outputs.GITHUB_HEAD_REF != needs.vars.outputs.GITHUB_BASE_REF
         run: |
           BASE_REF_WITH_PREFIX=$(if [[ ! "${{ needs.vars.outputs.GITHUB_BASE_REF }}" =~ ^[0-9a-f]{7,40}$ ]]; then echo "origin/"; fi)${{ needs.vars.outputs.GITHUB_BASE_REF }}
           echo "NX_ARGUMENTS=--base=$BASE_REF_WITH_PREFIX" >> $GITHUB_ENV
-      - name: nx ${{ matrix.target }}
+      - name: nx format:check
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js format:check $NX_ARGUMENTS
-      - name: nx ${{ matrix.target }}
+      - name: nx workspace-lint
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-lint $NX_ARGUMENTS
+      - name: nx copybara:check
+        run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-generator copybara --dry-run --no-interactive | (! grep -E 'CREATE|UPDATE|DELETE')
 
   calculate-targets:
     runs-on: ubuntu-latest
@@ -120,45 +133,42 @@ jobs:
       distributedTargets: lint,test
       distributedChunkSize: 17,8
       buildTasksChunkSize: 1
+      dockerBuildTasksChunkSize: 1
+      dockerTagTasksChunkSize: 5
       e2eTasksChunkSize: 1
       e2eDockerTasksChunkSize: 1
-      dockerTasksChunkSize: 5
+      publishTasksChunkSize: 5
       itTasksChunkSize: 1
       deployTasksChunkSize: 5
     outputs:
       DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
-      HAS_DISTRIBUTED_TARGETS: ${{ join(fromJson(steps.DISTRIBUTED_TARGETS.outputs.value).tasks) != '' }}
       BUILD_TASKS: ${{ steps.BUILD_TASKS.outputs.value }}
-      HAS_BUILD_TASKS: ${{ join(fromJson(steps.BUILD_TASKS.outputs.value).tasks) != '' }}
       E2E_TASKS: ${{ steps.E2E_TASKS.outputs.value }}
-      HAS_E2E_TASKS: ${{ join(fromJson(steps.E2E_TASKS.outputs.value).tasks) != '' }}
       E2E_DOCKER_TASKS: ${{ steps.E2E_DOCKER_TASKS.outputs.value }}
-      HAS_E2E_DOCKER_TASKS: ${{ join(fromJson(steps.E2E_DOCKER_TASKS.outputs.value).tasks) != '' }}
       DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.value }}
-      HAS_DOCKER_BUILD_TASKS: ${{ join(fromJson(steps.DOCKER_BUILD_TASKS.outputs.value).tasks) != '' }}
       IT_TASKS: ${{ steps.IT_TASKS.outputs.value }}
-      HAS_IT_TASKS: ${{ join(fromJson(steps.IT_TASKS.outputs.value).tasks) != '' }}
       DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
-      HAS_DOCKER_TAG_TASKS: ${{ join(fromJson(steps.DOCKER_TAG_TASKS.outputs.value).tasks) != '' }}
       DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
-      HAS_DEPLOY_TASKS: ${{ join(fromJson(steps.DEPLOY_TASKS.outputs.value).tasks) != '' }}
+      PUBLISH_TASKS: ${{ steps.PUBLISH_TASKS.outputs.value }}
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: Cache node modules
+        id: cache
         uses: actions/cache@v2
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
-      - name: copy eslint-config
-        run: cp -R tools/eslint-config ./node_modules/@elium
+      - name: Exit job if deps not cached yet
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: exit 1
       - name: Calculate distributed targets
         id: DISTRIBUTED_TARGETS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js ${{ env.distributedTargets }} ${{ env.distributedChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate build targets
         id: BUILD_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} --no-deps)"
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.BUILD_LIBRARIES != '' && '--build-libraries' || '' }})"
       - name: Calculate e2e targets
         id: E2E_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e ${{ env.e2eTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} --excludeApps=tera-e2e)"
@@ -167,13 +177,16 @@ jobs:
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e-docker ${{ env.e2eDockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate docker build tasks
         id: DOCKER_BUILD_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-build ${{ env.dockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-build ${{ env.dockerBuildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate IT tasks
         id: IT_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js it ${{ env.itTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate docker tag tasks
         id: DOCKER_TAG_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-tag ${{ env.dockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-tag ${{ env.dockerTagTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+      - name: Calculate publish tasks
+        id: PUBLISH_TASKS
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js publish ${{ env.publishTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate deploy tasks
         id: DEPLOY_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js deploy ${{ env.deployTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
@@ -207,6 +220,10 @@ jobs:
           echo "${{ steps.DOCKER_TAG_TASKS.outputs.value }}"
           echo ""
           echo ""
+          echo "--- PUBLISH_TASKS ---"
+          echo "${{ steps.PUBLISH_TASKS.outputs.value }}"
+          echo ""
+          echo ""
           echo "--- DEPLOY_TASKS ---"
           echo "${{ steps.DEPLOY_TASKS.outputs.value }}"
 
@@ -214,7 +231,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: ${{ needs.calculate-targets.outputs.HAS_DISTRIBUTED_TARGETS == 'true' }}
+    if: join(fromJson(needs.calculate-targets.outputs.DISTRIBUTED_TARGETS).tasks) != ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DISTRIBUTED_TARGETS) }}
@@ -244,7 +261,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: ${{ needs.calculate-targets.outputs.HAS_BUILD_TASKS == 'true' }}
+    if: join(fromJson(needs.calculate-targets.outputs.BUILD_TASKS).tasks) != ''
     strategy:
       matrix: ${{ fromJson(needs.calculate-targets.outputs.BUILD_TASKS) }}
       fail-fast: false
@@ -266,7 +283,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
     timeout-minutes: 60
-    if: ${{ needs.calculate-targets.outputs.HAS_E2E_TASKS == 'true' }}
+    if: join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) != ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_TASKS) }}
@@ -282,7 +299,7 @@ jobs:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: npm set token
-        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+        run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: Cache Cypress
         uses: actions/cache@v2
         with:
@@ -302,10 +319,29 @@ jobs:
           name: ${{ env.E2E_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
           path: dist
 
+  publish:
+    runs-on: ubuntu-latest
+    needs: [vars, calculate-targets, build]
+    if: (needs.vars.outputs.PUBLISH_LIBRARIES != '') && (join(fromJson(needs.calculate-targets.outputs.PUBLISH_TASKS).tasks) != '')
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.calculate-targets.outputs.PUBLISH_TASKS) }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
+      - name: npm set token for publishing projects
+        run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+      - name: nx publish
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
+
   docker-build:
     runs-on: ubuntu-latest
     needs: [vars, precheck, calculate-targets, build]
-    if: ${{ needs.calculate-targets.outputs.HAS_DOCKER_BUILD_TASKS == 'true' }}
+    if: join(fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS).tasks) != ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS) }}
@@ -318,14 +354,14 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: npm set token for installing dedicated Node apps dependencies
-        run: echo "//nexus.elium.io/repository/npm-all/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+        run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
 
   it:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: ${{ needs.calculate-targets.outputs.HAS_IT_TASKS == 'true' }}
+    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) != ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.IT_TASKS) }}
@@ -343,7 +379,7 @@ jobs:
   e2e-docker:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: ${{ needs.calculate-targets.outputs.HAS_E2E_DOCKER_TASKS == 'true' }}
+    if: join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS) }}
@@ -375,7 +411,7 @@ jobs:
           path: dist
 
   docker-tag:
-    if: ${{ (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'true' && always() }}
+    if: (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && join(fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS).tasks) != '' && always()
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build, e2e, it]
     strategy:
@@ -394,7 +430,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/master' && (needs.calculate-targets.outputs.HAS_IT_TASKS == 'false' || needs.it.result == 'success') && (needs.calculate-targets.outputs.HAS_E2E_TASKS == 'false' || needs.e2e.result == 'success') && needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'true' && always() }}
+    if: github.ref == 'refs/heads/master' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) != '' && always()
     needs: [vars, calculate-targets, it, e2e]
     strategy:
       fail-fast: false
@@ -411,7 +447,7 @@ jobs:
 
   success:
     runs-on: ubuntu-latest
-    if: ${{ (needs.calculate-targets.outputs.HAS_DOCKER_TAG_TASKS == 'false' || needs.docker-tag.result == 'success') && (github.ref != 'refs/heads/master' || needs.calculate-targets.outputs.HAS_DEPLOY_TASKS == 'false' || needs.deploy.result == 'success') && always() }}
-    needs: [vars, docker-tag, deploy]
+    if: (join(fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS).tasks) == '' || needs.docker-tag.result == 'success') && ((needs.vars.outputs.PUBLISH_LIBRARIES == '') || (join(fromJson(needs.calculate-targets.outputs.PUBLISH_TASKS).tasks) == '') || needs.publish.result == 'success') && (github.ref != 'refs/heads/master' || join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) == '' || needs.deploy.result == 'success') && always()
+    needs: [vars, docker-tag, publish, deploy]
     steps:
       - run: echo "Workflow succeeded"

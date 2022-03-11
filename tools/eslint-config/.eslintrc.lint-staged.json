@@ -2,11 +2,11 @@
   "overrides": [
     {
       "files": ["*.ts"],
-      "extends": ["@elium/eslint-config/global"]
+      "extends": ["elium/global"]
     },
     {
       "files": ["*.html"],
-      "extends": ["plugin:@nrwl/nx/angular-template", "@elium/eslint-config/angular-template"]
+      "extends": ["plugin:@nrwl/nx/angular-template", "elium/angular-template"]
     }
   ]
 }

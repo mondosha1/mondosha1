@@ -1,0 +1,25 @@
+{
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "extends": ["plugin:@nrwl/nx/angular", "mondosha1/angular-next", "mondosha1/global-next"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              "lodash",
+              "@progress/kendo-angular-dialog",
+              {
+                "name": "lodash/fp",
+                "importNames": ["differenceBy", "get"]
+              },
+              "@mondosha1/shared/framework-feature-store-kit"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

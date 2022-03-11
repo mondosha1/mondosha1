@@ -4,7 +4,18 @@
   "projectType": "library",
   "targets": {
     "build": {
-      "builder": "@nrwl/node:package",
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "dependencies"
+        },
+        {
+          "target": "bump",
+          "projects": "self"
+        }
+      ],
+      "executor": "@nrwl/node:package",
+      "outputs": ["{options.outputPath}"],
       "configurations": {
         "production": {
           "tsConfig": "packages/core/tsconfig.lib.prod.json"
@@ -18,11 +29,30 @@
         "tsConfig": "packages/core/tsconfig.lib.json"
       }
     },
+    "bump": {
+      "executor": "@nrwl/workspace:run-commands",
+      "configurations": {
+        "production": {}
+      },
+      "options": {
+        "command": "cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\", ]//g' | xargs -I '{}' sed -i.bak 's/\"version\":[ ]*\"[^\"]*\"/\"version\": \"{}\"/g' packages/core/package.json && rm -f packages/core/package.json.bak"
+      }
+    },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["packages/core/**/*.ts", "packages/core/**/*.html"]
+      }
+    },
+    "publish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "configurations": {
+        "production": {}
+      },
+      "options": {
+        "command": "npm pack | npm publish",
+        "cwd": "dist/packages/core"
       }
     },
     "test": {
@@ -32,7 +62,14 @@
         "jestConfig": "packages/core/jest.config.js",
         "passWithNoTests": true
       }
+    },
+    "unpublish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "command": "cat package.json | sed -n -E 's/[ ]*\"name\":[ ]*\"([^\"]*)\",|[ ]*\"version\":[ ]*\"([^\"]*)\",/\\1\\2/p' | head -2 | sed 'N;s/\\n/@/' | xargs npm unpublish --force",
+        "cwd": "dist/packages/core"
+      }
     }
   },
-  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server"]
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server", "open-source:mondosha1"]
 }

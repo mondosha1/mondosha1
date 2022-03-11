@@ -1,5 +1,5 @@
 module.exports = {
-  extends: '@mondosha1/eslint-config/global',
+  extends: 'mondosha1/global',
   plugins: ['ban'],
   rules: {
     'no-restricted-imports': [

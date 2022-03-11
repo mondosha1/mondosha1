@@ -1,0 +1,74 @@
+{
+  "targets": {
+    "build": {
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "dependencies"
+        },
+        {
+          "target": "bump",
+          "projects": "self"
+        }
+      ],
+      "executor": "@nrwl/angular:ng-packagr-lite",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/feature-store-kit/tsconfig.lib.prod.json"
+        }
+      },
+      "options": {
+        "project": "packages/feature-store-kit/ng-package.json",
+        "tsConfig": "packages/feature-store-kit/tsconfig.lib.json"
+      }
+    },
+    "bump": {
+      "executor": "@nrwl/workspace:run-commands",
+      "configurations": {
+        "production": {}
+      },
+      "options": {
+        "command": "cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\", ]//g' | xargs -I '{}' sed -i.bak 's/\"version\":[ ]*\"[^\"]*\"/\"version\": \"{}\"/g' packages/feature-store-kit/package.json && rm -f packages/feature-store-kit/package.json.bak"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "packages/feature-store-kit/**/*.ts",
+          "packages/feature-store-kit/src/**/*.html"
+        ]
+      },
+      "outputs": ["{options.outputFile}"]
+    },
+    "publish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "configurations": {
+        "production": {}
+      },
+      "options": {
+        "command": "npm pack | npm publish"
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "options": {
+        "jestConfig": "packages/feature-store-kit/jest.config.js",
+        "passWithNoTests": true
+      },
+      "outputs": ["coverage/packages/feature-store-kit"]
+    },
+    "unpublish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "command": "cat package.json | sed -n -E 's/[ ]*\"name\":[ ]*\"([^\"]*)\",|[ ]*\"version\":[ ]*\"([^\"]*)\",/\\1\\2/p' | head -2 | sed 'N;s/\\n/@/' | xargs npm unpublish --force"
+      }
+    }
+  },
+  "prefix": "el",
+  "projectType": "library",
+  "root": "packages/feature-store-kit",
+  "generators": {},
+  "sourceRoot": "packages/feature-store-kit/src",
+  "tags": ["scope:shared", "type:framework", "platform:desktop", "open-source:mondosha1"]
+}

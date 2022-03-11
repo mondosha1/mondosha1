@@ -1,0 +1,30 @@
+{
+  "affected": {
+    "defaultBase": "master"
+  },
+  "implicitDependencies": {
+    ".eslintrc.json": "*",
+    ".github/workflows/**": "*",
+    "package.json": "*",
+    "tsconfig.base.json": "*"
+  },
+  "npmScope": "mondosha1",
+  "projects": {},
+  "targetDependencies": {
+    "build": [
+      {
+        "target": "build",
+        "projects": "dependencies"
+      }
+    ],
+    "publish": [
+      {
+        "target": "build",
+        "projects": "self"
+      }
+    ]
+  },
+  "workspaceLayout": {
+    "libsDir": "packages"
+  }
+}

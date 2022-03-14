@@ -33,6 +33,21 @@ module.exports = {
       'error',
       {
         paths: [
+          '.',
+          '..',
+          '../..',
+          '../../..',
+          '../../../..',
+          './',
+          '../',
+          '../../',
+          '../../../',
+          '../../../../',
+          './index',
+          '../index',
+          '../../index',
+          '../../../index',
+          '../../../../index',
           '@progress/kendo-angular-dialog',
           {
             name: 'rxjs/operators',

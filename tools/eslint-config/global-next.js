@@ -6,6 +6,21 @@ module.exports = {
       'error',
       {
         paths: [
+          '.',
+          '..',
+          '../..',
+          '../../..',
+          '../../../..',
+          './',
+          '../',
+          '../../',
+          '../../../',
+          '../../../../',
+          './index',
+          '../index',
+          '../../index',
+          '../../../index',
+          '../../../../index',
           'lodash',
           '@progress/kendo-angular-dialog',
           {

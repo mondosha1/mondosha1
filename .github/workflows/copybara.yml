@@ -2,7 +2,11 @@ name: Copybara
 
 on:
   push:
+    branches:
+      - master
   pull_request_target:
+    branches:
+      - master
 
 concurrency:
   group: copybara-${{ github.ref }}
@@ -33,7 +37,7 @@ jobs:
           sot_repo: Elium/service-platform
           sot_branch: master
           destination_repo: mondosha1/mondosha1
-          destination_branch: master
+          destination_branch: update-from-sot
           copybara_options: --force ${{ github.repository == 'Elium/service-platform' && '--init-history' || '' }}
           push_include: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushInclude }}
           push_replace: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushReplace }}

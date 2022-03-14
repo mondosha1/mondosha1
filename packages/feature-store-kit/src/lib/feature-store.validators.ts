@@ -1,10 +1,10 @@
-import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn, Validators } from '@angular/forms'
+import { AbstractControl, AsyncValidatorFn, FormArray, ValidationErrors, ValidatorFn, Validators } from '@angular/forms'
 import { Many } from '@mondosha1/array'
 import { IMap, of } from '@mondosha1/core'
 import { Lazy } from '@mondosha1/decorators'
 import { isLeft } from '@mondosha1/either'
-import { defaultToNull } from '@mondosha1/nullable'
-import { get, toString } from '@mondosha1/object'
+import { defaultToNull, foldOn } from '@mondosha1/nullable'
+import { EMPTY_OBJECT, get, toString } from '@mondosha1/object'
 import { wrapIntoObservable } from '@mondosha1/observable'
 import { format, startOfDay } from 'date-fns/fp'
 import { Parser } from 'expr-eval'
@@ -13,6 +13,7 @@ import {
   defaults,
   every,
   includes,
+  indexOf,
   isArray,
   isBoolean,
   isEmpty,
@@ -99,6 +100,15 @@ export class FeatureStoreValidators {
     return parser
   }
 
+  public static evaluateExpression(expr: string, state: IMap<any>): boolean | never {
+    const expression = this.parser.parse(expr)
+    const hasError = expression.evaluate(state as IMap<any>) as any
+    if (!isBoolean(hasError)) {
+      throw new Error('Feature store expressions should return a boolean value')
+    }
+    return hasError
+  }
+
   public static featureStoreValidator<State extends {}>(
     validatorOrValidators: Many<DefaultValidator<ValidatorName> | CustomValidator>,
     state$: Observable<State | null>,
@@ -140,19 +150,37 @@ export class FeatureStoreValidators {
     validator: CustomValidator,
     state$: Observable<State | null>
   ): AsyncValidatorFn {
-    return (): Observable<ValidationErrors | null> =>
+    return (control: AbstractControl): Observable<ValidationErrors | null> =>
       state$.pipe(
         first(),
         map((state: State | null) => {
-          const hasError = this.evaluateExpression(validator.formula, state as IMap<any>)
+          const stateWithIndex = of(FeatureStoreValidators.getIndexesFromParentArray(control)).pipe(defaults(state))
+          const hasError = FeatureStoreValidators.evaluateExpression(validator.formula, stateWithIndex)
           if (hasError) {
-            const errorMessage = template(validator.message)(state)
+            const errorMessage = of(state).pipe(template(validator.message))
             return { featureStoreFormula: { errorMessage } }
           } else {
             return null
           }
         })
       )
+  }
+
+  public static getIndexesFromParentArray(control: AbstractControl, depth: number = 0): IMap<number> {
+    if (isNil(control)) {
+      return EMPTY_OBJECT
+    } else {
+      return of(control.parent).pipe(
+        foldOn(
+          parent => parent instanceof FormArray,
+          (parent: FormArray) => ({
+            [`$index${depth > 0 ? `_${depth}` : ''}`]: of(parent.controls).pipe(indexOf(control)),
+            ...FeatureStoreValidators.getIndexesFromParentArray(control.parent, depth + 1)
+          }),
+          FeatureStoreValidators.getIndexesFromParentArray(control.parent, depth)
+        )
+      )
+    }
   }
 
   private static checkValidatorParam(params: IMap<any> | null, path: string): any | never {
@@ -190,15 +218,6 @@ export class FeatureStoreValidators {
           return validatorFn(control)
         })
       )
-  }
-
-  public static evaluateExpression(expr: string, state: IMap<any>): boolean | never {
-    const expression = this.parser.parse(expr)
-    const hasError = expression.evaluate(state as IMap<any>) as any
-    if (!isBoolean(hasError)) {
-      throw new Error('Feature store expressions should return a boolean value')
-    }
-    return hasError
   }
 
   private static getAngularValidator<State extends {}, V extends ValidatorName>(

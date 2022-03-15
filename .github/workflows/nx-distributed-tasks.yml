@@ -213,7 +213,7 @@ jobs:
           echo ""
           echo ""
           echo "--- E2E_DOCKER_TASKS ---"
-          echo "${{ steps.E2E_DOCKER.outputs.value }}"
+          echo "${{ steps.E2E_DOCKER_TASKS.outputs.value }}"
           echo ""
           echo ""
           echo "--- DOCKER_TAG_TASKS ---"
@@ -379,7 +379,7 @@ jobs:
   e2e-docker:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == ''
+    if: join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) != ''
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS) }}

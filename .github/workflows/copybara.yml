@@ -37,7 +37,7 @@ jobs:
           sot_repo: Elium/service-platform
           sot_branch: master
           destination_repo: mondosha1/mondosha1
-          destination_branch: update-from-sot
+          destination_branch: master
           push_include: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushInclude }}
           push_replace: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushReplace }}
           push_move: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushMove }}

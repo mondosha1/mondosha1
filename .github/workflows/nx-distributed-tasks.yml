@@ -374,7 +374,10 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --branch=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
+        env:
+          GITHASH: ${{ github.sha }}
+          BRANCH: ${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
 
   e2e-docker:
     runs-on: ubuntu-latest
@@ -400,9 +403,11 @@ jobs:
         uses: cypress-io/github-action@v2
         env:
           DEBUG: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
+          GITHASH: ${{ github.sha }}
+          BRANCH: ${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}
         with:
           install: false
-          command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --branch=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
+          command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
       - name: Upload e2e artifacts
         if: always()
         uses: actions/upload-artifact@v2.2.2

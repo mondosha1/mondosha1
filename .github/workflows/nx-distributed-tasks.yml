@@ -32,6 +32,7 @@ jobs:
   vars:
     runs-on: ubuntu-latest
     outputs:
+      AUTOFORMAT_ALL_BRANCHES: ${{ steps.AUTOFORMAT_ALL_BRANCHES.outputs.value }}
       BUILD_LIBRARIES: ${{ steps.BUILD_LIBRARIES.outputs.value }}
       PUBLISH_LIBRARIES: ${{ steps.PUBLISH_LIBRARIES.outputs.value }}
       GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}
@@ -39,6 +40,8 @@ jobs:
       GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
       GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
     steps:
+      - id: AUTOFORMAT_ALL_BRANCHES
+        run: echo "::set-output name=value::$(echo ${{ secrets.AUTOFORMAT_ALL_BRANCHES }} || '')"
       - id: BUILD_LIBRARIES
         run: echo "::set-output name=value::$(echo ${{ secrets.BUILD_LIBRARIES }} || '')"
       - id: PUBLISH_LIBRARIES
@@ -63,6 +66,7 @@ jobs:
         run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_BASE_REF.outputs.value }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
       - name: Display vars
         run: |
+          echo "AUTOFORMAT_ALL_BRANCHES: ${{ steps.AUTOFORMAT_ALL_BRANCHES.outputs.value }}"
           echo "BUILD_LIBRARIES: ${{ steps.BUILD_LIBRARIES.outputs.value }}"
           echo "PUBLISH_LIBRARIES: ${{ steps.PUBLISH_LIBRARIES.outputs.value }}"
           echo "GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}"
@@ -104,6 +108,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: Cache node modules
         id: cache
@@ -118,7 +123,23 @@ jobs:
         if: needs.vars.outputs.GITHUB_HEAD_REF != needs.vars.outputs.GITHUB_BASE_REF
         run: |
           BASE_REF_WITH_PREFIX=$(if [[ ! "${{ needs.vars.outputs.GITHUB_BASE_REF }}" =~ ^[0-9a-f]{7,40}$ ]]; then echo "origin/"; fi)${{ needs.vars.outputs.GITHUB_BASE_REF }}
-          echo "NX_ARGUMENTS=--base=$BASE_REF_WITH_PREFIX" >> $GITHUB_ENV
+          HEAD_REF_WITH_PREFIX=$(if [[ ! "${{ needs.vars.outputs.GITHUB_HEAD_REF }}" =~ ^[0-9a-f]{7,40}$ ]]; then echo "origin/"; fi)${{ needs.vars.outputs.GITHUB_HEAD_REF }}
+          echo "NX_ARGUMENTS=--head=$HEAD_REF_WITH_PREFIX --base=$BASE_REF_WITH_PREFIX" >> $GITHUB_ENV
+      - name: Autoformat
+        id: autoformat
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'autoformat') || (needs.vars.outputs.AUTOFORMAT_ALL_BRANCHES != '') }}
+        run: |
+          yarn format:write $NX_ARGUMENTS
+          yarn affected:lint --fix $NX_ARGUMENTS
+          echo "::set-output name=value::$(./tools/scripts/autofixup-all.sh on ${{ needs.vars.outputs.GITHUB_BASE_REF }} --no-verify >/dev/null 2>&1 && echo 'Autoformat succeeded' || echo 'Autoformat failed or nothing to format')"
+      - run: echo "${{ steps.autoformat.outputs.value }}"
+      - name: Push formatted files
+        uses: ad-m/github-push-action@master
+        if: ${{ (contains(github.event.pull_request.labels.*.name, 'autoformat') || (needs.vars.outputs.AUTOFORMAT_ALL_BRANCHES != '')) && contains(steps.autoformat.outputs.value, 'Autoformat succeeded') }}
+        with:
+          github_token: ${{ secrets.GH_WORKFLOW_TOKEN }}
+          branch: ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
+          force: true
       - name: nx format:check
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js format:check $NX_ARGUMENTS
       - name: nx workspace-lint
@@ -128,7 +149,7 @@ jobs:
 
   calculate-targets:
     runs-on: ubuntu-latest
-    needs: [vars, install-deps]
+    needs: [vars, precheck, install-deps]
     env:
       distributedTargets: lint,test
       distributedChunkSize: 17,8
@@ -340,7 +361,7 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
-    needs: [vars, precheck, calculate-targets, build]
+    needs: [vars, calculate-targets, build]
     if: join(fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS).tasks) != ''
     strategy:
       fail-fast: false

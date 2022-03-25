@@ -1,3 +1,5 @@
-export function isRight<T, U>(data: T | U, fn: (data: T | U) => boolean): data is U {
-  return fn(data) === true
+import { isFunction } from 'lodash/fp'
+
+export function isRight<T, U>(data: T | U, fnOrBool: boolean | ((data: T | U) => boolean)): data is U {
+  return (isFunction(fnOrBool) ? fnOrBool(data) : fnOrBool) === true
 }

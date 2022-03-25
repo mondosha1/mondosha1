@@ -8,5 +8,7 @@
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
-  "peerDependencies": {}
+  "peerDependencies": {
+    "lodash": "^4.0.0"
+  }
 }

@@ -214,6 +214,12 @@ describe('Feature store structure', () => {
         })
       ).toBe(true)
     })
+
+    it('should return false if a field is given', () => {
+      expect(FeatureStoreStructure.isFieldGroup({ type: 'string' })).toBe(false)
+
+      expect(FeatureStoreStructure.isFieldGroup('string')).toBe(false)
+    })
   })
 
   describe('isFieldType', () => {

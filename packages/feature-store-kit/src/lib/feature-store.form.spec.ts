@@ -1251,6 +1251,28 @@ describe('FeatureStoreFormFactory', () => {
       })
     })
 
+    it('should extend missing control values if a complex field type is given without validators', () => {
+      const extendedState = _of({
+        brand: 'Renault'
+      }).pipe(
+        FeatureStoreFormBuilder.extendState<Partial<Car>>(
+          {
+            brand: 'Renault'
+          },
+          {
+            brand: {
+              type: 'string'
+            },
+            model: 'string'
+          }
+        )
+      )
+
+      expect(extendedState).toEqual({
+        brand: 'Renault'
+      })
+    })
+
     it('should not include values which are not present in any state even if declared in the structure', () => {
       const extendedState = _of({
         brand: 'Peugeot'

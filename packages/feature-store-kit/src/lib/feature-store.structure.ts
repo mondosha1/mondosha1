@@ -246,6 +246,7 @@ export class FeatureStoreStructure {
     return (
       isPlainObject(fieldGroup) &&
       !isEmpty(fieldGroup) &&
+      !this.isField(fieldGroup) &&
       of(fieldGroup).pipe(every(value => this.isFieldType(value) || this.isField(value) || this.isFieldGroup(value)))
     )
   }

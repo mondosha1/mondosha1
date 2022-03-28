@@ -158,7 +158,7 @@ export class FeatureStoreEffects<State extends {}> {
             status: FeatureStoreStatus.Ready
           })
         ]).pipe(
-          foldLeftOn<any, any, readonly Action[], any>(() => dispatch && !isEmpty(actions), append(actions)),
+          foldLeftOn(() => dispatch && !isEmpty(actions), append(actions)),
           compact
         )
       )
@@ -256,7 +256,7 @@ export class FeatureStoreEffects<State extends {}> {
             status: FeatureStoreStatus.Ready
           })
         ]).pipe(
-          foldLeftOn<any, any, Action[], any>(() => dispatch && !isEmpty(actions), append(actions)),
+          foldLeftOn(() => dispatch && !isEmpty(actions), append(actions)),
           compact
         )
       )

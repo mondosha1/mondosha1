@@ -1,41 +1,48 @@
 import { constant, identity, isFunction, isNil } from 'lodash/fp'
-import { Nil, Nullable } from './nullable.type'
+import { Nil } from './nullable.type'
 
-export function fold<T, L, R>(left: ((v: Nullable<T>) => L) | L, right: ((v: NonNullable<T>) => R) | R = identity) {
-  return foldOn<Nullable<T>, NonNullable<T>, L, R>(isNil, left, right)
+export function fold<RightInput, LeftOutput, RightOutput>(
+  left: ((v: Nil) => LeftOutput) | LeftOutput,
+  right: ((v: RightInput) => RightOutput) | RightOutput = identity
+): (value: RightInput | Nil) => LeftOutput | RightOutput {
+  return foldOn<Nil, RightInput, LeftOutput, RightOutput>(isNil, left, right)
 }
 
-export function foldLeft<T, L>(left: ((v: Nullable<T>) => L) | L) {
-  return foldOn<Nullable<T>, NonNullable<T>, L, NonNullable<T>>(isNil, left, identity)
+export function foldLeft<RightInput, LeftOutput>(
+  left: ((v: Nil) => LeftOutput) | LeftOutput
+): (value: RightInput | Nil) => LeftOutput | RightInput {
+  return foldOn<Nil, RightInput, LeftOutput, RightInput>(isNil, left, identity)
 }
 
-export function foldRight<T, R>(right: ((v: T) => R) | R) {
-  return foldOn<Nullable<T>, NonNullable<T>, Nil, R>(isNil, identity, right)
+export function foldRight<RightInput, RightOutput>(
+  right: ((v: RightInput) => RightOutput) | RightOutput
+): (value: RightInput | Nil) => RightOutput | Nil {
+  return foldOn<Nil, RightInput, Nil, RightOutput>(isNil, identity, right)
 }
 
-export function foldOn<T, U extends T, L, R>(
-  condition: ((v: T | U) => v is T) | ((v: T | U) => boolean) | boolean,
-  left: ((v: T) => L) | L,
-  right: ((v: U) => R) | R = identity
-) {
+export function foldOn<LeftInput, RightInput = LeftInput, LeftOutput = LeftInput, RightOutput = RightInput>(
+  condition: ((v: LeftInput | RightInput) => v is LeftInput) | ((v: LeftInput | RightInput) => boolean) | boolean,
+  left: ((v: LeftInput) => LeftOutput) | LeftOutput,
+  right: ((v: RightInput) => RightOutput) | RightOutput = identity
+): (value: LeftInput | RightInput) => LeftOutput | RightOutput {
   const leftFn = isFunction(left) ? left : constant(left)
   const rightFn = isFunction(right) ? right : constant(right)
-  return (value: T) => {
+  return (value: LeftInput | RightInput) => {
     const condFn = isFunction(condition) ? condition(value) : condition
-    return condFn ? leftFn(value) : rightFn(value as U)
+    return condFn ? leftFn(value as LeftInput) : rightFn(value as RightInput)
   }
 }
 
-export function foldLeftOn<T, U extends T, L, R>(
-  condition: ((v: T | U) => v is T) | ((v: T | U) => boolean) | boolean,
-  left: ((v: T) => L) | L
-) {
-  return foldOn<T, U, L, R>(condition, left)
+export function foldLeftOn<LeftInput, RightInput = LeftInput, LeftOutput = LeftInput>(
+  condition: ((v: LeftInput | RightInput) => v is LeftInput) | ((v: LeftInput | RightInput) => boolean) | boolean,
+  left: ((v: LeftInput) => LeftOutput) | LeftOutput
+): (value: LeftInput | RightInput) => LeftOutput | RightInput {
+  return foldOn<LeftInput, RightInput, LeftOutput, RightInput>(condition, left)
 }
 
-export function foldRightOn<T, U extends T, L, R>(
-  condition: ((v: T | U) => v is T) | ((v: T | U) => boolean) | boolean,
-  right: ((v: U) => R) | R
-) {
-  return foldOn<T, U, L, R>(condition, identity, right)
+export function foldRightOn<LeftInput, RightInput = LeftInput, RightOutput = RightInput>(
+  condition: ((v: LeftInput | RightInput) => v is LeftInput) | ((v: LeftInput | RightInput) => boolean) | boolean,
+  right: ((v: RightInput) => RightOutput) | RightOutput = identity
+): (value: LeftInput | RightInput) => LeftInput | RightOutput {
+  return foldOn<LeftInput, RightInput, LeftInput, RightOutput>(condition, identity, right)
 }

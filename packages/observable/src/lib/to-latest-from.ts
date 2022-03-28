@@ -220,7 +220,7 @@ export function toLatestsFrom<T, R>(...streams$: ObservableInput<any>[]): Operat
 export function toLatestsFrom<T>(...streams$: ObservableInput<any>[]): OperatorFunction<T, any[]> {
   return ((source$: Observable<T>) =>
     source$.pipe(
-      withLatestFrom<T, [T, any[]]>(...streams$),
+      withLatestFrom(...streams$),
       map(([, ...latests]: [T, any[]]) => latests)
     ) as Observable<any[]>) as OperatorFunction<T, any[]>
 }

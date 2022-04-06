@@ -16,6 +16,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {
+      "@mondosha1/angular-directives": ["packages/angular-directives/src/index.ts"],
       "@mondosha1/array": ["packages/array/src/index.ts"],
       "@mondosha1/boolean": ["packages/boolean/src/index.ts"],
       "@mondosha1/core": ["packages/core/src/index.ts"],

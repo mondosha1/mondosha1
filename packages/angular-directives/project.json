@@ -1,0 +1,71 @@
+{
+  "targets": {
+    "build": {
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "dependencies"
+        },
+        {
+          "target": "bump",
+          "projects": "self"
+        }
+      ],
+      "executor": "@nrwl/angular:ng-packagr-lite",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/angular-directives/tsconfig.lib.prod.json"
+        }
+      },
+      "options": {
+        "project": "packages/angular-directives/ng-package.json",
+        "tsConfig": "packages/angular-directives/tsconfig.lib.json"
+      }
+    },
+    "bump": {
+      "executor": "@nrwl/workspace:run-commands",
+      "configurations": {
+        "production": {}
+      },
+      "options": {
+        "command": "cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\", ]//g' | xargs -I '{}' sed -i.bak 's/\"version\":[ ]*\"[^\"]*\"/\"version\": \"{}\"/g' packages/angular-directives/package.json && rm -f packages/angular-directives/package.json.bak"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/angular-directives/**/*.ts", "packages/angular-directives/**/*.html"]
+      }
+    },
+    "publish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "configurations": {
+        "production": {}
+      },
+      "options": {
+        "command": "npm pack | npm publish"
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/angular-directives"],
+      "options": {
+        "jestConfig": "packages/angular-directives/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "unpublish": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "command": "cat package.json | sed -n -E 's/[ ]*\"name\":[ ]*\"([^\"]*)\",|[ ]*\"version\":[ ]*\"([^\"]*)\",/\\1\\2/p' | head -2 | sed 'N;s/\\n/@/' | xargs npm unpublish --force"
+      }
+    }
+  },
+  "prefix": "bt",
+  "root": "packages/angular-directives",
+  "sourceRoot": "packages/angular-directives/src",
+  "projectType": "library",
+  "generators": {},
+  "tags": ["scope:shared", "type:ui", "platform:desktop", "open-source:mondosha1"]
+}

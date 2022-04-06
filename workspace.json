@@ -7,6 +7,7 @@
     }
   },
   "projects": {
+    "angular-directives": "packages/angular-directives",
     "array": "packages/array",
     "boolean": "packages/boolean",
     "core": "packages/core",

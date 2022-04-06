@@ -1,0 +1,60 @@
+{
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "extends": [
+        "plugin:@nrwl/nx/angular",
+        "plugin:@angular-eslint/template/process-inline-templates",
+        "mondosha1/angular",
+        "mondosha1/global"
+      ],
+
+      "rules": {
+        "@angular-eslint/directive-selector": [
+          "error",
+          {
+            "type": "attribute",
+            "prefix": "bt",
+            "style": "camelCase"
+          }
+        ],
+        "@angular-eslint/component-selector": [
+          "error",
+          {
+            "type": "element",
+            "prefix": "bt",
+            "style": "kebab-case"
+          }
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              "lodash",
+              "@progress/kendo-angular-dialog",
+              "@mondosha1/shared/ui-angular-directives",
+              {
+                "name": "rxjs/operators",
+                "importNames": ["tap"],
+                "message": "Prefer use tap from @mondosha1/shared/util"
+              },
+              {
+                "name": "lodash/fp",
+                "importNames": ["differenceBy", "get", "tap"]
+              },
+              {
+                "name": "@ngrx/store",
+                "importNames": ["props"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.html"],
+      "extends": ["plugin:@nrwl/nx/angular-template"]
+    }
+  ]
+}

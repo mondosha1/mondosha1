@@ -400,7 +400,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
   }
 
   private disable(formGroup: FormGroup, condition, state: State, path) {
-    if (isNil(condition) || FeatureStoreValidators.evaluateExpression(condition, state as IMap<any>)) {
+    if (isNil(condition) || FeatureStoreValidators.evaluateExpression(condition, state as IMap)) {
       if (formGroup.get(path).enabled) {
         formGroup.get(path).disable()
       }
@@ -471,7 +471,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
           of(numberOfValues).pipe(
             range(numberOfControlsInFormArray),
             _map((index: number) => of(values).pipe(get(index), defaultToEmptyObject)),
-            _map((value: IMap<any>) => {
+            _map((value: IMap) => {
               const itemControl = this.createArrayItem<Path>(path, richState$)
               itemControl.patchValue(value, { emitEvent: false })
               return itemControl

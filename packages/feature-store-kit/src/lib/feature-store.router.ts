@@ -55,9 +55,9 @@ export interface FeatureStoreRouterStoreState extends BaseRouterStoreState {
 }
 
 export interface RouterRoute {
-  data: IMap<any>
+  data: IMap
   outlet: string
-  params: IMap<any>
+  params: IMap
   url: RouterSegment[]
 }
 
@@ -123,7 +123,7 @@ export class FeatureStoreRouter {
   public static extractData<RouterStoreState extends FeatureStoreRouterStoreState>(
     routerState: RouterStoreState,
     routes?: RouterStoreState['root'][]
-  ): IMap<any> {
+  ): IMap {
     return of(routes).pipe(
       foldLeft(() => FeatureStoreRouter.extractRoutes(routerState)),
       FeatureStoreRouter.extractPathFromRoot(routerState),
@@ -221,7 +221,7 @@ export class FeatureStoreRouter {
     newParams: Partial<State>,
     currentState: Partial<State>,
     existingParams: Partial<State>
-  ): IMap<any> {
+  ): IMap {
     return of(newParams).pipe(
       defaults(existingParams),
       defaults(currentState),

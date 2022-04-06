@@ -100,9 +100,9 @@ export class FeatureStoreValidators {
     return parser
   }
 
-  public static evaluateExpression(expr: string, state: IMap<any>): boolean | never {
+  public static evaluateExpression(expr: string, state: IMap): boolean | never {
     const expression = this.parser.parse(expr)
-    const hasError = expression.evaluate(state as IMap<any>) as any
+    const hasError = expression.evaluate(state as IMap) as any
     if (!isBoolean(hasError)) {
       throw new Error('Feature store expressions should return a boolean value')
     }
@@ -183,7 +183,7 @@ export class FeatureStoreValidators {
     }
   }
 
-  private static checkValidatorParam(params: IMap<any> | null, path: string): any | never {
+  private static checkValidatorParam(params: IMap | null, path: string): any | never {
     const param = of(params).pipe(get(path), defaultToNull)
 
     if (isNull(param)) {
@@ -209,7 +209,7 @@ export class FeatureStoreValidators {
             ? { name: validator }
             : (validator as ValidatorNameWithParams<V>)
 
-          const evaluateValidator = isNil(condition) || this.evaluateExpression(condition, state as IMap<any>)
+          const evaluateValidator = isNil(condition) || this.evaluateExpression(condition, state as IMap)
           if (!evaluateValidator) {
             return constant(null)
           }

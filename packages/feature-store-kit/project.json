@@ -47,7 +47,8 @@
         "production": {}
       },
       "options": {
-        "command": "npm pack | npm publish"
+        "command": "npm pack | npm publish",
+        "cwd": "dist/packages/feature-store-kit"
       }
     },
     "test": {

@@ -12,6 +12,7 @@
         }
       ],
       "executor": "@nrwl/angular:ng-packagr-lite",
+      "outputs": ["dist/packages/feature-store-kit"],
       "configurations": {
         "production": {
           "tsConfig": "packages/feature-store-kit/tsconfig.lib.prod.json"

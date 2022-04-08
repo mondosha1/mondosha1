@@ -14,7 +14,7 @@
           "projects": "self"
         }
       ],
-      "executor": "@nrwl/node:package",
+      "executor": "@nrwl/js:tsc",
       "outputs": ["{options.outputPath}"],
       "configurations": {
         "production": {

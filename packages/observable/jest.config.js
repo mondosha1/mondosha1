@@ -2,6 +2,9 @@ module.exports = {
   name: 'observable',
   preset: '../../jest.preset.js',
   coverageDirectory: '../../coverage/packages/observable',
+  transform: {
+    '^.+\\.(ts|mjs|js|html)$': 'jest-preset-angular'
+  },
   reporters: [
     'jest-progress-bar-reporter',
     [
@@ -15,10 +18,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   globals: {
     'ts-jest': {
-      stringifyContentPathRegex: '\\.(html|svg)$',
-      astTransformers: {
-        before: ['jest-preset-angular/build/InlineFilesTransformer', 'jest-preset-angular/build/StripStylesTransformer']
-      }
+      stringifyContentPathRegex: '\\.(html|svg)$'
     }
   }
 }

@@ -31,6 +31,21 @@
           "error",
           {
             "paths": [
+              ".",
+              "..",
+              "../..",
+              "../../..",
+              "../../../..",
+              "./",
+              "../",
+              "../../",
+              "../../../",
+              "../../../../",
+              "./index",
+              "../index",
+              "../../index",
+              "../../../index",
+              "../../../../index",
               "lodash",
               "@progress/kendo-angular-dialog",
               "@mondosha1/shared/ui-angular-directives",
@@ -54,7 +69,7 @@
     },
     {
       "files": ["*.html"],
-      "extends": ["plugin:@nrwl/nx/angular-template"]
+      "extends": ["plugin:@nrwl/nx/angular-template", "mondosha1/angular-template-next"]
     }
   ]
 }

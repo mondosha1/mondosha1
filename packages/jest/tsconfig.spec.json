@@ -1,10 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "allowJs": true,
     "outDir": "../../dist/libs/jest",
     "module": "commonjs",
     "types": ["jest", "node"]
   },
   "files": ["src/test-setup.ts"],
-  "include": ["**/*.spec.ts", "**/*.d.ts", "../../../../../../shared/util-jest/src/typings.d.ts"]
+  "include": ["**/*.spec.ts", "**/*.test.ts", "**/*.d.ts", "../../../../../../shared/util-jest/src/typings.d.ts"]
 }

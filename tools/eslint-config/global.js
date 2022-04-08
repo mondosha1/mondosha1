@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['plugin:@typescript-eslint/recommended', 'prettier', 'prettier/@typescript-eslint'],
+  extends: ['plugin:@typescript-eslint/recommended', 'prettier', 'plugin:prettier/recommended'],
   plugins: ['unicorn', 'rxjs', 'functional', 'import', '@nrwl/nx', 'eslint-plugin-local-rules'],
   rules: {
     'arrow-parens': ['off', 'always'],

@@ -14,5 +14,5 @@
     "enableResourceInlining": true
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "src/test-setup.ts", "**/*.spec.ts"]
+  "exclude": ["node_modules", "src/test-setup.ts", "**/*.spec.ts", "**/*.test.ts"]
 }

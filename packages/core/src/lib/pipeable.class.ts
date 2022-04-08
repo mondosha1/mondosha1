@@ -23,7 +23,7 @@ export class Pipeable<T> {
     op4: OperatorFunction<C, D>,
     op5: OperatorFunction<D, R>
   ): R
-  public pipe<R extends any, A, B, C, D, E>(
+  public pipe<R, A, B, C, D, E>(
     op1: OperatorFunction<T, A>,
     op2: OperatorFunction<A, B>,
     op3: OperatorFunction<B, C>,
@@ -73,7 +73,7 @@ export class Pipeable<T> {
     op9: OperatorFunction<H, I>,
     op10: OperatorFunction<I, R>
   ): R
-  public pipe<R extends any>(...ops: OperatorFunction<any, any>[]): R {
+  public pipe<R>(...ops: OperatorFunction<any, any>[]): R {
     return _pipe(ops)(this.value)
   }
 }

@@ -11,7 +11,7 @@ type Tail<U> = U extends [any, any, ...any[]]
     : never
   : never
 
-export type TraversePath<State extends any, T extends any[]> = Head<T> extends keyof State
+export type TraversePath<State, T extends any[]> = Head<T> extends keyof State
   ? {
       0: State[Head<T>]
       1: TraversePath<State[Head<T>], Tail<T>>

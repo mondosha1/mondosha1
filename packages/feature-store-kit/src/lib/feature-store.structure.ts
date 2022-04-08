@@ -324,10 +324,7 @@ export class FeatureStoreStructure {
     return of(arrType).pipe(replace(/\[\]+$/, '')) as SimpleFieldType
   }
 
-  private static parseArrayParam<V extends any, R extends any>(
-    value: V[],
-    predicate?: (val: any) => R
-  ): (R | string)[] {
+  private static parseArrayParam<V, R>(value: V[], predicate?: (val: any) => R): (R | string)[] {
     return isEmpty(value)
       ? emptyArray<R>()
       : of(value).pipe(

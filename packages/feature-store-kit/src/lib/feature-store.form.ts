@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core'
 import { AbstractControl, AsyncValidatorFn, FormArray, FormBuilder, FormGroup } from '@angular/forms'
-import { append, EMPTY_ARRAY, emptyArray, wrapIntoArray } from '@mondosha1/array'
+import { append, EMPTY_ARRAY, emptyArray, UnitOf, wrapIntoArray } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
-import { IMap, of } from '@mondosha1/core'
-import { defaultToNull, fold, foldLeftOn, Nullable } from '@mondosha1/nullable'
+import { IMap, IMapK, of } from '@mondosha1/core'
+import { Lazy } from '@mondosha1/decorators'
+import { defaultToNull, fold, foldLeftOn, foldRight, Nullable } from '@mondosha1/nullable'
 import { isNumeric } from '@mondosha1/number'
 import {
   defaultToEmptyObject,
@@ -18,6 +19,7 @@ import {
   compact,
   defaults,
   defaultTo,
+  find,
   first as _first,
   flatten,
   forEach,
@@ -32,6 +34,7 @@ import {
   isNil,
   isNull,
   join,
+  keys,
   map as _map,
   pick,
   range,
@@ -90,6 +93,14 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
     private readonly fb: FormBuilder
   ) {}
 
+  @Lazy()
+  public static get indexKeys(): (`$index` | `$index_${number}`)[] {
+    return of(11).pipe(
+      range(0),
+      _map(num => `$index${num > 0 ? `_${num}` : ''}`)
+    ) as (`$index` | `$index_${number}`)[]
+  }
+
   public static extendState<State extends {}>( // eslint-disable-line @typescript-eslint/no-shadow
     originalState: State,
     structure: Structure<FeatureStoreState<State>>
@@ -137,6 +148,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
 
   public createArrayItem<Path extends string>(
     pathInInitialState: F.AutoPath<Required<State>, Path>,
+    index: number = 0,
     richState$?: Observable<RichState>
   ): FormGroup | never {
     const structurePath = this.convertValuePathToStructurePath<Path>(pathInInitialState)
@@ -153,15 +165,15 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
     }
 
     const initialValue = this.getInitialValue<Path>(pathInInitialState)
-    // Set a initial value only if there was a single initial value given to the initial state
+    // Set an initial value only if there was a single initial value given to the initial state
     if (isArray(initialValue) && size(initialValue) === 1) {
       return this.createControl<any>(
         items,
         `${pathInInitialState}.0` as F.AutoPath<Required<State>, any>,
-        richState$
+        of(richState$).pipe(foldRight(this.withIndex$(index)))
       ) as FormGroup
     } else {
-      return this.createControl(items, null, richState$) as FormGroup
+      return this.createControl(items, null, of(richState$).pipe(foldRight(this.withIndex$(index)))) as FormGroup
     }
   }
 
@@ -183,7 +195,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
         if (FeatureStoreStructure.isSimpleFieldType(items)) {
           return this.fb.control(initialValue, null, asyncValidators) // Array of primitive values
         } else {
-          const itemsControls = of(initialValue).pipe(
+          return of(initialValue).pipe(
             mapObject((item: any, index: number) =>
               this.createControl<any>(
                 items,
@@ -191,11 +203,11 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
                   Required<State>,
                   any
                 >,
-                richState$
+                of(richState$).pipe(foldRight(this.withIndex$(index)))
               )
-            )
-          ) as AbstractControl[]
-          return this.fb.array(itemsControls, null, asyncValidators) // Array of objects needing a form array
+            ),
+            thru((controls: AbstractControl[]) => this.fb.array(controls, null, asyncValidators))
+          )
         }
       } else {
         return this.fb.control(initialValue, null, asyncValidators) // Simple field
@@ -259,6 +271,37 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
       return this.featureStoreOptions.initialState
     } else {
       return of(this.featureStoreOptions.initialState as State).pipe(get<any, any>(path), defaultTo(null))
+    }
+  }
+
+  public withIndex$<S extends State | RichState>(
+    index: number
+  ): (state$: Observable<S>) => Observable<S & IMapK<UnitOf<typeof FeatureStoreFormBuilder.indexKeys>, number>> {
+    return (state$: Observable<S>) =>
+      state$.pipe(
+        map(state => {
+          const stateKeys = keys(state)
+          const indexKey = of(FeatureStoreFormBuilder.indexKeys).pipe(
+            find(key => of(stateKeys).pipe(negate(includes(key))))
+          )
+          if (isNil(indexKey)) {
+            throw new Error(`Max depth of ${size(FeatureStoreFormBuilder.indexKeys)} form arrays permitted`)
+          }
+          return of(state).pipe(defaults({ [indexKey]: index }))
+        })
+      )
+  }
+
+  private arrayDisabler(formGroup, condition, state, path, previousIndex) {
+    this.disable(formGroup, condition, state, path)
+    if (previousIndex > 0) {
+      this.arrayDisabler(
+        formGroup,
+        condition,
+        state,
+        of(path).pipe(replace(`${previousIndex}`, `${previousIndex - 1}`)),
+        previousIndex - 1
+      )
     }
   }
 
@@ -341,37 +384,38 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
     >
   }
 
+  private disable(formGroup: FormGroup, condition, state: State, path) {
+    if (isNil(condition) || FeatureStoreValidators.evaluateExpression(condition, state as IMap)) {
+      if (formGroup.get(path).enabled) {
+        formGroup.get(path).disable()
+      }
+    } else {
+      if (formGroup.get(path).disabled) {
+        formGroup.get(path).enable()
+      }
+    }
+  }
+
   private getAsyncValidators<P extends string>(
     pieceOfStructure: Structure<FeatureStoreState<State>> | FieldGroup<State> | Field<State> | FieldType,
     pathInInitialState: F.AutoPath<Required<State>, P>,
-    richState$?: Observable<RichState>
+    richState$: Observable<RichState>
   ): Nullable<AsyncValidatorFn> {
     return of(pieceOfStructure).pipe(
       get<Field<State>, 'validators'>('validators'),
       defaultToNull,
-      thru(validators =>
-        isNull(validators)
-          ? null
-          : FeatureStoreValidators.featureStoreValidator<State>(
-              validators,
-              richState$ || this.featureStoreFacade.stateWithoutMetaData$,
-              pathInInitialState
-            )
+      thru(
+        (
+          validators // TODO use fold(null, …)
+        ) =>
+          isNull(validators)
+            ? null
+            : FeatureStoreValidators.featureStoreValidator<State>(
+                validators,
+                richState$ || this.featureStoreFacade.stateWithoutMetaData$, // TODO: replace with richState$ (as this is the default value in options)
+                pathInInitialState
+              )
       )
-    )
-  }
-
-  private getOptions(config?: FeatureStoreFormConfig<State, RichState>): FeatureStoreFormConfig<State, RichState> {
-    if (of(config).pipe(negate(has('takeUntil$')))) {
-      throw new Error('The "takeUntil$" option is mandatory')
-    }
-    return of(config).pipe(
-      defaults({
-        debounce: 300,
-        formatter: identity,
-        updateStrategy: FormUpdateStrategy.ToStore,
-        richState$: this.featureStoreFacade.stateWithoutMetaData$
-      })
     )
   }
 
@@ -399,29 +443,18 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
     return of(paths).pipe(flatten, uniq, compact)
   }
 
-  private disable(formGroup: FormGroup, condition, state: State, path) {
-    if (isNil(condition) || FeatureStoreValidators.evaluateExpression(condition, state as IMap)) {
-      if (formGroup.get(path).enabled) {
-        formGroup.get(path).disable()
-      }
-    } else {
-      if (formGroup.get(path).disabled) {
-        formGroup.get(path).enable()
-      }
+  private getOptions(config?: FeatureStoreFormConfig<State, RichState>): FeatureStoreFormConfig<State, RichState> {
+    if (of(config).pipe(negate(has('takeUntil$')))) {
+      throw new Error('The "takeUntil$" option is mandatory')
     }
-  }
-
-  private arrayDisabler(formGroup, condition, state, path, previousIndex) {
-    this.disable(formGroup, condition, state, path)
-    if (previousIndex > 0) {
-      this.arrayDisabler(
-        formGroup,
-        condition,
-        state,
-        of(path).pipe(replace(`${previousIndex}`, `${previousIndex - 1}`)),
-        previousIndex - 1
-      )
-    }
+    return of(config).pipe(
+      defaults({
+        debounce: 300,
+        formatter: identity,
+        updateStrategy: FormUpdateStrategy.ToStore,
+        richState$: this.featureStoreFacade.stateWithoutMetaData$
+      })
+    )
   }
 
   private updateDisabler(
@@ -456,7 +489,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
     formGroup: FormGroup,
     pieceOfStructure: Structure<FeatureStoreState<State>> | FieldGroup<State> | Field<State> | FieldType,
     state: State,
-    richState$?: Observable<RichState>
+    richState$: Observable<RichState>
   ): void {
     const isFormGroupDisabled = formGroup.disabled
     const formArrayPaths = this.getFormArrayPaths(pieceOfStructure, state)
@@ -470,9 +503,9 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
         if (numberOfValues > numberOfControlsInFormArray) {
           of(numberOfValues).pipe(
             range(numberOfControlsInFormArray),
-            _map((index: number) => of(values).pipe(get(index), defaultToEmptyObject)),
-            _map((value: IMap) => {
-              const itemControl = this.createArrayItem<Path>(path, richState$)
+            _map((index: number) => [index, of(values).pipe(get(index), defaultToEmptyObject)] as [number, IMap]),
+            _map(([index, value]: [number, IMap]) => {
+              const itemControl = this.createArrayItem<Path>(path, index, richState$)
               itemControl.patchValue(value, { emitEvent: false })
               return itemControl
             }),

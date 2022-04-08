@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing'
+import { fakeAsync, flush, TestBed } from '@angular/core/testing'
 import {
   AbstractControl,
   FormArray,
@@ -15,7 +15,7 @@ import { firstValue } from '@mondosha1/observable'
 import { Store } from '@ngrx/store'
 import { MockStore, provideMockStore } from '@ngrx/store/testing'
 import { getOr, omit, values } from 'lodash/fp'
-import { Observable, of } from 'rxjs'
+import { Observable, of, Subject } from 'rxjs'
 import { FeatureStoreFormBuilder, FeatureStoreFormFactory } from './feature-store.form'
 import { formula } from './feature-store.formula'
 import { FeatureStoreModule } from './feature-store.module'
@@ -32,7 +32,7 @@ describe('FeatureStoreFormFactory', () => {
   let featureStoreFormFactory: FeatureStoreFormFactory
   let featureStoreFormBuilder: FeatureStoreFormBuilder<Car>
   let store: MockStore<CarStoreState>
-  const destroy$ = of<void>()
+  let destroy$ = new Subject()
   const carState = withFeatureStoreState<Car>({
     brand: 'Peugeot',
     model: '208',
@@ -84,10 +84,20 @@ describe('FeatureStoreFormFactory', () => {
       type: 'array',
       items: {
         width: 'number',
-        height: 'number',
+        height: {
+          type: 'number',
+          validators: {
+            formula: formula`AND(ISEMPTY(wheels[$index].width), NOT(ISEMPTY(wheels[$index].height)))`,
+            message: 'You must fill the width first'
+          }
+        },
         diameter: {
           type: 'number',
-          disabled: formula`ISEMPTY(model)`
+          disabled: formula`ISEMPTY(model)`,
+          validators: {
+            name: ValidatorName.Required,
+            condition: formula`AND(NOT(ISEMPTY(wheels[$index].width)), NOT(ISEMPTY(wheels[$index].height)))`
+          }
         },
         bolts: {
           disabled: formula`ISEMPTY(model)`,
@@ -154,6 +164,20 @@ describe('FeatureStoreFormFactory', () => {
     it('should return the value at the given deep path', () => {
       const value = featureStoreFormBuilder.getInitialValue('engine.cylinders')
       expect(value).toBe(1598)
+    })
+  })
+
+  describe('indexKeys', () => {
+    it('should be created', () => {
+      expect(FeatureStoreFormBuilder.indexKeys)
+        .toBeArray()
+        .toSatisfyAll(item => {
+          expect(item)
+            .toStartWith('$index')
+            .toMatch(/^\$index(_[0-9]*)?$/)
+            .not.toBe('$index_0')
+          return true
+        })
     })
   })
 
@@ -360,6 +384,22 @@ describe('FeatureStoreFormFactory', () => {
 
     it('should throw an error if the form group is injected in a module without takeUntil$ option', () => {
       expect(() => featureStoreFormBuilder.create()).toThrowError('The "takeUntil$" option is mandatory')
+    })
+  })
+
+  describe('withIndex$', () => {
+    it('should define an $index property if there were no index declared before', async () => {
+      const stateWithIndex = of(carState).pipe(featureStoreFormBuilder.withIndex$(1))
+      expect(await firstValue(stateWithIndex)).toEqual({ ...carState, $index: 1 })
+    })
+
+    it('should define an consequent $index if some are already defined property if there were no index declared before', async () => {
+      const stateWithIndex = of(carState).pipe(
+        featureStoreFormBuilder.withIndex$(2),
+        featureStoreFormBuilder.withIndex$(3),
+        featureStoreFormBuilder.withIndex$(1)
+      )
+      expect(await firstValue(stateWithIndex)).toEqual({ ...carState, $index: 2, $index_1: 3, $index_2: 1 })
     })
   })
 
@@ -1160,6 +1200,15 @@ describe('FeatureStoreFormFactory', () => {
         const formGroup = featureStoreFormBuilder.createControl()
         expect(formGroup).toBeInstanceOf(FormGroup)
       })
+
+      it('should set the created form array as parent of child controls', () => {
+        const formArray = featureStoreFormBuilder.createControl(carStructure.wheels) as FormArray
+        expect(formArray.controls).not.toBeEmpty()
+        expect(formArray.controls).toSatisfyAll(control => {
+          expect(control.parent).toBe(formArray)
+          return true
+        })
+      })
     })
 
     describe('with a field group', () => {
@@ -1189,6 +1238,15 @@ describe('FeatureStoreFormFactory', () => {
           power: 200,
           cylinders: 1598,
           valves: []
+        })
+      })
+
+      it('should set the created form group as parent of child controls', () => {
+        const formGroup = featureStoreFormBuilder.createControl(carStructure.engine, 'engine') as FormGroup
+        expect(formGroup.controls).not.toBeEmpty()
+        expect(values(formGroup.controls)).toSatisfyAll(control => {
+          expect(control.parent).toBe(formGroup)
+          return true
         })
       })
     })
@@ -1223,6 +1281,110 @@ describe('FeatureStoreFormFactory', () => {
         expect(formGroup.value).toEqual(_of(carState).pipe(omit('$meta')))
       })
     })
+
+    it('should allow validators on neighbor properties in a same form array item', fakeAsync(() => {
+      const formGroup = featureStoreFormBuilder.create({ takeUntil$: destroy$ })
+
+      store.setState({
+        [CAR_FEATURE_STORE_KEY]: {
+          ...carState,
+          wheels: [
+            {
+              width: null,
+              height: 100
+            }
+          ] as Wheel[]
+        }
+      })
+
+      store.refreshState()
+
+      flush()
+
+      expect(formGroup.get('wheels').valid).toBe(false)
+      expect(formGroup.get('wheels.0').valid).toBe(false)
+      expect(formGroup.get('wheels.0.width').valid).toBe(true)
+      expect(formGroup.get('wheels.0.height').valid).toBe(false)
+      expect(formGroup.get('wheels.0.height').errors).toEqual({
+        featureStoreFormula: {
+          errorMessage: 'You must fill the width first'
+        }
+      })
+
+      store.setState({
+        [CAR_FEATURE_STORE_KEY]: {
+          ...carState,
+          wheels: [
+            {
+              width: 100,
+              height: 100
+            }
+          ] as Wheel[]
+        }
+      })
+
+      store.refreshState()
+
+      flush()
+
+      expect(formGroup.get('wheels.0.width').valid).toBe(true)
+      expect(formGroup.get('wheels.0.height').valid).toBe(true)
+      expect(formGroup.get('wheels.0.height').errors).toBeNull()
+
+      destroy$.next()
+    }))
+
+    it('should allow conditions on neighbor properties in a same form array item', fakeAsync(() => {
+      const formGroup = featureStoreFormBuilder.create({ takeUntil$: destroy$ })
+
+      store.setState({
+        [CAR_FEATURE_STORE_KEY]: {
+          ...carState,
+          wheels: [
+            {
+              width: 10,
+              height: 10,
+              diameter: null
+            }
+          ] as Wheel[]
+        }
+      })
+
+      store.refreshState()
+
+      flush()
+
+      expect(formGroup.get('wheels').valid).toBe(false)
+      expect(formGroup.get('wheels.0').valid).toBe(false)
+      expect(formGroup.get('wheels.0.width').valid).toBe(true)
+      expect(formGroup.get('wheels.0.height').valid).toBe(true)
+      expect(formGroup.get('wheels.0.diameter').valid).toBe(false)
+      expect(formGroup.get('wheels.0.diameter').errors).toEqual({ required: true })
+
+      store.setState({
+        [CAR_FEATURE_STORE_KEY]: {
+          ...carState,
+          wheels: [
+            {
+              width: 10,
+              height: 10,
+              diameter: 10
+            }
+          ] as Wheel[]
+        }
+      })
+
+      store.refreshState()
+
+      flush()
+
+      expect(formGroup.get('wheels.0.width').valid).toBe(true)
+      expect(formGroup.get('wheels.0.height').valid).toBe(true)
+      expect(formGroup.get('wheels.0.diameter').valid).toBe(true)
+      expect(formGroup.get('wheels.0.diameter').errors).toBeNull()
+
+      destroy$.next()
+    }))
   })
 
   describe('extendState', () => {

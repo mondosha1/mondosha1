@@ -192,7 +192,7 @@ jobs:
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.BUILD_LIBRARIES != '' && '--build-libraries' || '' }})"
       - name: Calculate e2e targets
         id: E2E_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e ${{ env.e2eTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} --excludeApps=tera-e2e)"
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e ${{ env.e2eTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Calculate e2e docker targets
         id: E2E_DOCKER_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e-docker ${{ env.e2eDockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"

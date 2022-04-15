@@ -403,7 +403,7 @@ jobs:
   e2e-docker:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) != ''
+    if: join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS).tasks) == '' || needs.docker-build.result == 'success')
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS) }}

@@ -20,6 +20,7 @@ env:
   BUILD_ARTIFACTS: build-artifacts
   CYPRESS_CACHE: cache-cypress
   CYPRESS_CACHE_FOLDER: cache/Cypress
+  CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE: ${{ secrets.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE || '' }}
   DEPENDENCIES_CACHE: ${{ secrets.DEPENDENCIES_CACHE || 'cache-node-modules' }}
   DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY || 'ghcr.io' }}
   NPM_REGISTRY: ${{ secrets.NPM_REGISTRY || 'registry.npmjs.org' }}
@@ -330,6 +331,7 @@ jobs:
         uses: cypress-io/github-action@v2
         env:
           DEBUG: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
+          CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
         with:
           install: false
           command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
@@ -382,7 +384,7 @@ jobs:
   it:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) != ''
+    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS).tasks) == '' || needs.docker-build.result == 'success')
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.IT_TASKS) }}
@@ -408,6 +410,10 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS) }}
     steps:
+      - id: TASK_HASH
+        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')"
+      - id: TASK_PREFIX
+        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')"
       - uses: actions/checkout@v2
       - name: Cache node modules
         uses: actions/cache@v2
@@ -424,6 +430,7 @@ jobs:
         uses: cypress-io/github-action@v2
         env:
           DEBUG: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
+          CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
           GITHASH: ${{ github.sha }}
           BRANCH: ${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}
         with:
@@ -433,13 +440,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2.2.2
         with:
-          name: ${{ env.E2E_ARTIFACTS }}--run-tera-e2e
+          name: ${{ env.E2E_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
           path: dist
 
   docker-tag:
-    if: (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && join(fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS).tasks) != '' && always()
+    if: join(fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && always()
     runs-on: ubuntu-latest
-    needs: [vars, calculate-targets, docker-build, e2e, it]
+    needs: [vars, calculate-targets, docker-build, e2e, e2e-docker, it]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS) }}
@@ -456,8 +463,8 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) != '' && always()
-    needs: [vars, calculate-targets, it, e2e]
+    if: github.ref == 'refs/heads/master' && join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && always()
+    needs: [vars, calculate-targets, it, e2e, e2e-docker]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS) }}

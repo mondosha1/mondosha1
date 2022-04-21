@@ -1,4 +1,5 @@
 cache
 dist
 **/*.graphql
+**/templates/**/*.yaml
 tools/generators/bootstrap-helm-chart-files/files/**/*.yaml

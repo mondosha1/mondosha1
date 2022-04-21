@@ -54,6 +54,11 @@ openpgp*
 .vscode
 *.iml
 
+# Infra ignore files
+**/charts/*.tgz
+output
+.tool-versions
+
 # App files
 cache
 dist

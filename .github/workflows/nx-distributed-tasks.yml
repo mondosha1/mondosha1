@@ -28,6 +28,9 @@ env:
   TEST_ARTIFACTS: test-artifacts
   NG_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.S3_PROXY_AWS_ACCESS_KEY_ID }}
   NG_DEPLOY_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PROXY_AWS_SECRET_ACCESS_KEY }}
+  ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
+  ARGOCD_URL: ${{ secrets.ARGOCD_URL }}
+  KUBECONFIG_FILE: ${{ secrets.KUBECONFIG_FILE }}
 
 jobs:
   vars:
@@ -40,6 +43,7 @@ jobs:
       GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}
       GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
       GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
+      KUBECONFIG_FILE: ${{ secrets.KUBECONFIG_FILE }}
     steps:
       - id: AUTOFORMAT_ALL_BRANCHES
         run: echo "::set-output name=value::$(echo ${{ secrets.AUTOFORMAT_ALL_BRANCHES }} || '')"
@@ -65,6 +69,8 @@ jobs:
           echo "::set-output name=value::$(echo ${REBUILD_ALL_BASE_REF:-${LAST_SUCCESSFUL_COMMIT_COMMIT_HASH:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}}})"
       - id: GITHUB_BASE_SLUG
         run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_BASE_REF.outputs.value }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
+      - id: PRODUCTION_TIMESTAMP
+        run: echo "::set-output name=value::$(date +'%Y%m%d_%H%m%S')"
       - name: Display vars
         run: |
           echo "AUTOFORMAT_ALL_BRANCHES: ${{ steps.AUTOFORMAT_ALL_BRANCHES.outputs.value }}"
@@ -74,6 +80,7 @@ jobs:
           echo "GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}"
           echo "GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}"
           echo "GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}"
+          echo "PRODUCTION_TIMESTAMP: ${{ steps.PRODUCTION_TIMESTAMP.outputs.value }}"
 
   install-deps:
     runs-on: ubuntu-latest
@@ -171,6 +178,7 @@ jobs:
       IT_TASKS: ${{ steps.IT_TASKS.outputs.value }}
       DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
       DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
+      DEPLOY_ARGOCD_TASKS: ${{ steps.DEPLOY_ARGOCD_TASKS.outputs.value }}
       PUBLISH_TASKS: ${{ steps.PUBLISH_TASKS.outputs.value }}
     steps:
       - uses: actions/checkout@v2
@@ -244,6 +252,10 @@ jobs:
           echo ""
           echo "--- PUBLISH_TASKS ---"
           echo "${{ steps.PUBLISH_TASKS.outputs.value }}"
+          echo ""
+          echo ""
+          echo "--- DEPLOY_ARGOCD_TASKS ---"
+          echo "${{ steps.DEPLOY_ARGOCD_TASKS.outputs.value }}"
           echo ""
           echo ""
           echo "--- DEPLOY_TASKS ---"
@@ -460,6 +472,23 @@ jobs:
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --tag=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
+
+  deploy-argocd:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && join(fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS).tasks) != '' && always()
+    needs: [vars, calculate-targets, it, e2e, e2e-docker]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS) }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
+      - name: nx deploy-argocd
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
 
   deploy:
     runs-on: ubuntu-latest

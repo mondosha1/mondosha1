@@ -7,7 +7,7 @@ import { FEATURE_STORE_FORROOT_GUARD, FEATURE_STORE_OPTIONS, FeatureStoreModuleO
 import { SubmitBeforeLeavingGuard } from './submit-before-leaving.guard'
 import { SubmitWithChildrenBeforeLeavingGuard } from './submit-with-children-before-leaving.guard'
 
-export function provideForRootGuard(featureStoreFramework) {
+export function provideForRootGuard(featureStoreFramework): 'guarded' | never {
   if (featureStoreFramework) {
     throw new Error(
       'FeatureStoreModule.forRoot() called twice. Lazy loaded modules should use FeatureStoreModule.forFeature() instead.'
@@ -25,6 +25,21 @@ export class FeatureStoreModule {
   ) {
     if (options) {
       featureStoreFramework.withFeatureStoreOptions(options)
+    }
+  }
+
+  public static forFeature<State extends {}, RichState extends State = State>(
+    options: FeatureStoreModuleOptions<State, RichState>
+  ): ModuleWithProviders<FeatureStoreModule> {
+    return {
+      ngModule: FeatureStoreModule,
+      providers: [
+        {
+          provide: FEATURE_STORE_OPTIONS,
+          multi: true,
+          useValue: options
+        }
+      ]
     }
   }
 
@@ -53,21 +68,6 @@ export class FeatureStoreModule {
           provide: FEATURE_STORE_FORROOT_GUARD,
           useFactory: provideForRootGuard,
           deps: [[FeatureStoreFramework, new Optional(), new SkipSelf()]]
-        }
-      ]
-    }
-  }
-
-  public static forFeature<State extends {}, RichState extends State = State>(
-    options: FeatureStoreModuleOptions<State, RichState>
-  ): ModuleWithProviders<FeatureStoreModule> {
-    return {
-      ngModule: FeatureStoreModule,
-      providers: [
-        {
-          provide: FEATURE_STORE_OPTIONS,
-          multi: true,
-          useValue: options
         }
       ]
     }

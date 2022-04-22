@@ -8,7 +8,7 @@ export class ImgPlaceholderDirective implements OnInit {
   @Input('btImgPlaceholder') public targetSource: string
   @Input() public defaultImage: string
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) {}
+  public constructor(private changeDetectorRef: ChangeDetectorRef) {}
 
   public ngOnInit() {
     if (this.defaultImage) {

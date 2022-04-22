@@ -292,7 +292,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
       )
   }
 
-  private arrayDisabler(formGroup, condition, state, path, previousIndex) {
+  private arrayDisabler(formGroup, condition, state, path, previousIndex): void {
     this.disable(formGroup, condition, state, path)
     if (previousIndex > 0) {
       this.arrayDisabler(
@@ -384,7 +384,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
     >
   }
 
-  private disable(formGroup: FormGroup, condition, state: State, path) {
+  private disable(formGroup: FormGroup, condition, state: State, path): void {
     if (isNil(condition) || FeatureStoreValidators.evaluateExpression(condition, state as IMap)) {
       if (formGroup.get(path).enabled) {
         formGroup.get(path).disable()

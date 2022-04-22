@@ -56,7 +56,7 @@ export class FormFieldWrapperDirective
   protected doCheck$: Subject<void> = new Subject<void>()
   private controlRequired: boolean
 
-  constructor(
+  public constructor(
     protected changeDetectorRef: ChangeDetectorRef,
     @Optional() @Host() @SkipSelf() protected controlContainer: ControlContainer,
     @Optional() @Inject(FORM_FIELD_ERROR_MESSAGES) protected errorMessages: Nullable<IMap<string>>

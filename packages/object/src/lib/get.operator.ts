@@ -10,6 +10,8 @@ export function get<Obj extends {}, Path extends keyof NonNullable<Obj>>(
 export function get<Obj extends Nullable<{}>, Path extends string>(
   path: F.AutoPath<RequiredDeep<Obj>, Path>
 ): (obj: Obj) => Nullable<O.Path<RequiredDeep<Obj>, S.Split<Path, '.'>>>
-export function get(path) {
+export function get<Obj extends {}, Path extends string>(
+  path: Path
+): (obj: Obj) => Nullable<O.Path<RequiredDeep<Obj>, S.Split<Path, '.'>>> {
   return _get(path)
 }

@@ -105,11 +105,11 @@ describe('toJSON', () => {
 })
 
 class Engine {
-  constructor(public name: string, public power: number, public cylinders: number) {}
+  public constructor(public name: string, public power: number, public cylinders: number) {}
 }
 
 class Car {
-  constructor(public brand: string, public model: string, public engine?: Nullable<Engine>) {}
+  public constructor(public brand: string, public model: string, public engine?: Nullable<Engine>) {}
 }
 
 class CustomSerializeEngine extends Engine implements Serializable {

@@ -1,12 +1,12 @@
 import { isRight } from '@mondosha1/either'
 import { isPlainObject } from 'lodash/fp'
 
-export function Throttle(options: number | IThrottleOptions) {
-  return function (target: any, propertyKey: string) {
+export function Throttle(options: number | IThrottleOptions): MethodDecorator {
+  return function (target: {}, propertyKey: string | symbol) {
     // eslint-disable-next-line
     let timeoutID: any = null
     const originalFn = target[propertyKey]
-    const callback = (thisArg, argsArray) => {
+    const callback = (thisArg, argsArray): void => {
       timeoutID = null
       originalFn.apply(thisArg, argsArray)
     }

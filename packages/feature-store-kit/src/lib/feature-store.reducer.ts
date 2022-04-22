@@ -6,13 +6,14 @@ import { TypedAction } from '@ngrx/store/src/models'
 import { defaults, defaultTo, isArray, isNil, isNull, mapValues, mergeWith, omit, tap, thru } from 'lodash/fp'
 import * as featureStore from './feature-store.actions'
 import { IFeatureStoreAction } from './feature-store.actions'
+import { FeatureStoreState } from './feature-store.state'
 
 export function emptyReducer<T>(state: T): T {
   return state
 }
 
 export function featureStoreReducer(reducer) {
-  return function <FeatureStoreKey extends string, Store extends object, Type extends string>(
+  return function <FeatureStoreKey extends string, Store extends FeatureStoreState<{}>, Type extends string>(
     state: IMapK<FeatureStoreKey, Store>,
     action: IFeatureStoreAction & TypedAction<Type>
   ) {
@@ -21,7 +22,7 @@ export function featureStoreReducer(reducer) {
     if (isNil(store)) {
       return reducer(state, action)
     } else {
-      const newStore = getNewState(store, action)
+      const newStore: Store = getNewState(store, action)
       if (newStore !== store) {
         return of(newStore).pipe(
           thru(ns => ({ [featureStoreKey]: ns })),
@@ -59,7 +60,7 @@ const getNewState = createReducer(
   on(featureStore.reset, () => null)
 )
 
-function updateStateWithoutMetadata(values, state) {
+function updateStateWithoutMetadata<Store extends FeatureStoreState<{}>>(values: Partial<Store>, state: Store): Store {
   return of(values).pipe(
     omit('$meta'),
     mergeWith((objValue, srcValue) => {
@@ -67,11 +68,11 @@ function updateStateWithoutMetadata(values, state) {
         return srcValue
       }
     }, state),
-    thru(newStore => (jsonEqual(state, newStore) ? state : newStore))
+    thru(newStore => (jsonEqual(state, newStore) ? state : newStore) as Store)
   )
 }
 
-function getStoreFromFeatureStoreKey<FeatureStoreKey extends string, Store extends object>(
+function getStoreFromFeatureStoreKey<FeatureStoreKey extends string, Store extends FeatureStoreState<{}>>(
   featureStoreKey: FeatureStoreKey,
   state: IMapK<FeatureStoreKey, Store>
 ): Nullable<Store> {

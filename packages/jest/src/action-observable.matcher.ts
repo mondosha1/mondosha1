@@ -1,7 +1,7 @@
 /* eslint-disable rxjs/no-internal */
 import { Scheduler } from 'jest-marbles'
 import { equals, mapValues, omit } from 'lodash/fp'
-import { Notification } from 'rxjs'
+import { Notification, Observable } from 'rxjs'
 import { TestMessage } from 'rxjs/internal/testing/TestMessage'
 import { TestScheduler } from 'rxjs/testing'
 
@@ -29,6 +29,9 @@ export function actionObservable<T>(expected$) {
   }
 }
 
-export function toBeActionObservable<T>(received$, expected$) {
+export function toBeActionObservable<R, E>(
+  received$: Observable<R>,
+  expected$: Observable<E>
+): { pass: boolean; message: () => string } {
   return { pass: actionObservable(expected$)(received$), message: () => `Action and resultAction aren't equals` }
 }

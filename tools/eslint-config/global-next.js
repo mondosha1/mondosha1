@@ -72,6 +72,32 @@ module.exports = {
     ],
     'arrow-body-style': ['error', 'as-needed'],
     'prefer-template': 'error',
-    'no-empty': 'error'
+    'no-empty': 'error',
+    '@typescript-eslint/no-empty-function': [
+      'error',
+      {
+        allow: ['protected-constructors', 'private-constructors']
+      }
+    ],
+    '@typescript-eslint/explicit-function-return-type': [
+      'error',
+      {
+        allowExpressions: true
+      }
+    ],
+    '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'explicit' }],
+    '@typescript-eslint/no-type-alias': [
+      'error',
+      {
+        allowAliases: 'always',
+        allowCallbacks: 'always',
+        allowConditionalTypes: 'always',
+        allowConstructors: 'always',
+        allowGenerics: 'always',
+        allowLiterals: 'in-unions-and-intersections',
+        allowMappedTypes: 'always',
+        allowTupleTypes: 'always'
+      }
+    ]
   }
 }

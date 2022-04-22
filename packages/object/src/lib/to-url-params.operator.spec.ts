@@ -66,7 +66,7 @@ describe('toUrlParams', () => {
 })
 
 class Engine {
-  constructor(public name: string, public power: number, public cylinders: number) {}
+  public constructor(public name: string, public power: number, public cylinders: number) {}
 }
 
 class CustomSerializeEngine extends Engine implements Serializable {

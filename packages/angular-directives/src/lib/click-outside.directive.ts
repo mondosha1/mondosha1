@@ -6,7 +6,7 @@ import { Directive, ElementRef, EventEmitter, HostListener, Output } from '@angu
 export class ClickOutsideDirective {
   @Output('btClickOutside') public clickOutside = new EventEmitter<MouseEvent>()
 
-  constructor(private _elementRef: ElementRef) {}
+  public constructor(private _elementRef: ElementRef) {}
 
   @HostListener('document:click', ['$event', '$event.target'])
   public onClick(event: MouseEvent, targetElement: HTMLElement): void {

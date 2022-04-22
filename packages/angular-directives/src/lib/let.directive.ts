@@ -12,7 +12,7 @@ export class BtLetContext {
 export class LetDirective implements OnInit {
   private context = new BtLetContext()
 
-  constructor(private viewContainerRef: ViewContainerRef, private templateRef: TemplateRef<BtLetContext>) {}
+  public constructor(private viewContainerRef: ViewContainerRef, private templateRef: TemplateRef<BtLetContext>) {}
 
   @Input()
   public set btLet(value: any) {

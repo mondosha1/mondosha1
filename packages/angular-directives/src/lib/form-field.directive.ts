@@ -14,7 +14,7 @@ export class FormFieldDirective<Value = any> extends FormFieldWrapperDirective i
   // Can't be replaced by Nullable<Value> seems break some components
   protected innerValue: Value | null = null
 
-  constructor(
+  public constructor(
     protected changeDetectorRef: ChangeDetectorRef,
     @Optional() @Host() @SkipSelf() protected controlContainer: ControlContainer,
     @Optional() @Inject(FORM_FIELD_ERROR_MESSAGES) protected errorMessages: Nullable<IMap<string>>

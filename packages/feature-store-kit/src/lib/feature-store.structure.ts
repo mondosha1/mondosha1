@@ -73,7 +73,7 @@ export interface ValidatorParams {
   [ValidatorName.MinLength]: { minLength: number }
 }
 
-export type ValidatorNameWithParams<V extends ValidatorName> = {
+export interface ValidatorNameWithParams<V extends ValidatorName> {
   name: V
   params?: V extends keyof ValidatorParams ? ValidatorParams[V] : never
   condition?: EXPR_EVAL_EXPRESSION
@@ -107,7 +107,7 @@ export class FeatureStoreStructure {
     currentState: Partial<State>,
     key: keyof State,
     value: any
-  ) {
+  ): boolean {
     return (
       of(currentState).pipe(get(key), jsonEqual(value), negate) ||
       of(referenceState).pipe(get(key), jsonEqual(value), negate)

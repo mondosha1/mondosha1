@@ -2,7 +2,7 @@ import { Directive, ElementRef, HostListener } from '@angular/core'
 
 @Directive({ selector: 'video[btPlayOnHover]' })
 export class PlayOnHoverDirective {
-  constructor(private elementRef: ElementRef) {
+  public constructor(private elementRef: ElementRef) {
     this.elementRef.nativeElement.load()
   }
 

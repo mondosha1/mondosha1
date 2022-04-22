@@ -72,7 +72,7 @@ export class FeatureStoreEffects<State extends {}> {
    * - Creates the initialState meta to allow later `isChanged` checks
    * - Updates the store
    */
-  public initStore() {
+  public initStore(): Observable<ReturnType<typeof featureStore.updateStore>> {
     return this.actions$.pipe(
       ofType(featureStore.initStore),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
@@ -104,7 +104,9 @@ export class FeatureStoreEffects<State extends {}> {
    *   ))
    * - provide a complete stream in order to dispatch the SetReadiness action
    */
-  public initStoreFromParent(stream$: (source$: Observable<State>) => Observable<any> = switchMap(() => of(null))) {
+  public initStoreFromParent(
+    stream$: (source$: Observable<State>) => Observable<any> = switchMap(() => of(null))
+  ): Observable<ReturnType<typeof featureStore.setStatus>> {
     return this.actions$.pipe(
       ofType(featureStore.initStoreFromParent),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
@@ -143,7 +145,7 @@ export class FeatureStoreEffects<State extends {}> {
   public navigateToStore(
     stream$: (source$: Observable<State>) => Observable<Action | Action[] | any> = switchMap(() => of(null)),
     { dispatch }: { dispatch: boolean } = { dispatch: false }
-  ) {
+  ): Observable<ReturnType<typeof featureStore.setStatus> | Action> {
     return this.actions$.pipe(
       ofType(featureStore.updateStoreFromParams),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
@@ -151,14 +153,17 @@ export class FeatureStoreEffects<State extends {}> {
       tap(() => this.featureStoreFacade.setStatus(FeatureStoreStatus.Initializing)),
       map(({ values }) => values),
       stream$,
-      mergeMap((actions: Action | Action[] | any) =>
+      mergeMap((actions: Action | Action[]) =>
         _of([
           featureStore.setStatus({
             featureStoreKey: this.featureStoreOptions.featureStoreKey,
             status: FeatureStoreStatus.Ready
           })
         ]).pipe(
-          foldLeftOn(() => dispatch && !isEmpty(actions), append(actions)),
+          foldLeftOn(
+            () => dispatch && !isEmpty(actions),
+            append<ReturnType<typeof featureStore.setStatus> | Action>(actions)
+          ),
           compact
         )
       )
@@ -177,7 +182,7 @@ export class FeatureStoreEffects<State extends {}> {
    *   Eg:
    *   public resetStoreOnLeave = createEffect(() => this.featureStoreEffects.resetStoreOnLeave())
    */
-  public resetStoreOnLeave() {
+  public resetStoreOnLeave(): Observable<ReturnType<typeof featureStore.reset>> {
     return this.actions$.pipe(
       ofType(ROUTER_NAVIGATION),
       map(({ payload: { routerState } }: { payload: { routerState: FeatureStoreRouterStoreState } }) =>
@@ -192,7 +197,7 @@ export class FeatureStoreEffects<State extends {}> {
     )
   }
 
-  public resetStoreWithChildrenOnLeave() {
+  public resetStoreWithChildrenOnLeave(): Observable<ReturnType<typeof featureStore.reset>> {
     return this.actions$.pipe(
       ofType(ROUTER_NAVIGATION),
       map(({ payload: { routerState } }: { payload: { routerState: FeatureStoreRouterStoreState } }) =>
@@ -228,7 +233,7 @@ export class FeatureStoreEffects<State extends {}> {
   public submitIfValid(
     stream$: (source$: Observable<State>) => Observable<Action | Action[] | any> = switchMap(() => of(null)),
     { dispatch }: { dispatch: boolean } = { dispatch: false }
-  ) {
+  ): Observable<ReturnType<typeof featureStore.setStatus> | Action> {
     return this.actions$.pipe(
       ofType(featureStore.submit),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
@@ -249,14 +254,17 @@ export class FeatureStoreEffects<State extends {}> {
           })
         )
       ),
-      mergeMap((actions: Action | Action[] | any) =>
+      mergeMap((actions: Action | Action[]) =>
         _of([
           featureStore.setStatus({
             featureStoreKey: this.featureStoreOptions.featureStoreKey,
             status: FeatureStoreStatus.Ready
           })
         ]).pipe(
-          foldLeftOn(() => dispatch && !isEmpty(actions), append(actions)),
+          foldLeftOn(
+            () => dispatch && !isEmpty(actions),
+            append<ReturnType<typeof featureStore.setStatus> | Action>(actions)
+          ),
           compact
         )
       )
@@ -269,7 +277,7 @@ export class FeatureStoreEffects<State extends {}> {
    */
   public submitWithChildrenIfValid<Key extends string>(
     stream$: (source$: Observable<IMapK<Key, State>>) => Observable<any>
-  ) {
+  ): Observable<ReturnType<typeof featureStore.setStatus>> {
     return this.actions$.pipe(
       ofType(featureStore.submit),
       filter(({ featureStoreKey }) => featureStoreKey === this.featureStoreOptions.featureStoreKey),
@@ -312,7 +320,7 @@ export class FeatureStoreEffects<State extends {}> {
    * data, an absence of form implies no submit at all.
    * This effect fixes this behavior and transforms directly the askForValidation into a submit action.
    */
-  public submitWithoutValidation() {
+  public submitWithoutValidation(): Observable<ReturnType<typeof featureStore.submit>> {
     return this.actions$.pipe(
       ofType(featureStore.askForValidation),
       filter(action => action.featureStoreKey === this.featureStoreOptions.featureStoreKey),
@@ -336,7 +344,7 @@ export class FeatureStoreEffects<State extends {}> {
    * Only the last segment of each route can be update with parameters.
    *
    */
-  public updateParamsFromForm() {
+  public updateParamsFromForm(): Observable<any> {
     return this.actions$.pipe(
       ofType(featureStore.updateParamsFromForm),
       filter(action => action.featureStoreKey === this.featureStoreOptions.featureStoreKey),
@@ -369,7 +377,9 @@ export class FeatureStoreEffects<State extends {}> {
    *   public updateStoreFromParams = createEffect(() => this.featureStoreEffects.updateStoreFromParams(defaultState))
    * - A formatter fn can be given to make simple transformations onto the state before it comes into the store
    */
-  public updateStoreFromParams(formatter: (state: Partial<State>) => Partial<State> = identity) {
+  public updateStoreFromParams(
+    formatter: (state: Partial<State>) => Partial<State> = identity
+  ): Observable<ReturnType<typeof featureStore.updateStoreFromParams>> {
     return this.actions$.pipe(
       ofType(ROUTER_NAVIGATION),
       map(({ payload: { routerState } }: { payload: { routerState: FeatureStoreRouterStoreState } }) =>

@@ -1,4 +1,6 @@
 export * from './all.pipeable'
 export * from './default-to-null.operator'
 export * from './fold.operator'
+export * from './get.operator'
+export * from './tap.operator'
 export * from './nullable.type'

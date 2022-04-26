@@ -108,6 +108,10 @@ module.exports = {
             onlyDependOnLibsWithTags: ['platform:server']
           },
           {
+            sourceTag: 'platform:temporal',
+            onlyDependOnLibsWithTags: ['platform:server', 'platform:temporal']
+          },
+          {
             sourceTag: 'scope:accounts',
             onlyDependOnLibsWithTags: ['scope:accounts', 'scope:shared']
           },
@@ -176,14 +180,32 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:whatsnew', 'scope:shared']
           },
           {
+            sourceTag: 'scope:temporal-worker',
+            onlyDependOnLibsWithTags: ['scope:temporal', 'scope:dv360', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:temporal',
+            onlyDependOnLibsWithTags: ['scope:temporal', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:dv360',
+            onlyDependOnLibsWithTags: ['scope:dv360', 'scope:temporal', 'scope:shared']
+          },
+          {
+            sourceTag: 'type:activity',
+            onlyDependOnLibsWithTags: ['type:util']
+          },
+          {
             sourceTag: 'type:app',
             onlyDependOnLibsWithTags: [
+              'type:activity',
               'type:feature',
               'type:framework',
               'type:data',
               'type:env',
               'type:ui',
-              'type:util'
+              'type:util',
+              'type:workflow'
             ]
           },
           {
@@ -224,6 +246,11 @@ module.exports = {
           {
             sourceTag: 'type:util',
             onlyDependOnLibsWithTags: ['type:util', 'type:data']
+          },
+
+          {
+            sourceTag: 'type:workflow',
+            onlyDependOnLibsWithTags: ['type:util', 'type:workflow', 'type:activity']
           }
         ],
         enforceBuildableLibDependency: true

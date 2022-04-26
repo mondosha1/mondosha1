@@ -94,12 +94,16 @@ src/jenkins.gdsl
 # <!> DO NOT COMMIT THOSE FILES <!>
 /elium-config/*
 
+# Env files
+.local.env
+.env.local
+tags.env
+.run.env
+
 # Misc stuff
 v8-compile-cache
 npm-debug.log*
 .docker
-.local.env
-tags.env
 .DS_Store
 tmp/*
 gitcommit.txt

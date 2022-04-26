@@ -9,7 +9,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "peerDependencies": {
-    "@ngrx/store": "^12.0.0",
+    "@ngrx/store": "^13.0.0",
     "lodash": "^4.0.0",
     "rxjs": "^6.0.0"
   }

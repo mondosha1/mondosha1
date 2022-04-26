@@ -2,6 +2,57 @@
   "affected": {
     "defaultBase": "master"
   },
+  "cli": {
+    "analytics": false,
+    "defaultCollection": "@nrwl/angular",
+    "packageManager": "npm",
+    "warnings": {
+      "typescriptMismatch": false
+    }
+  },
+  "defaultProject": "tera",
+  "generators": {
+    "@nrwl/angular:application": {
+      "e2eTestRunner": "cypress",
+      "prefix": "el",
+      "routing": true,
+      "simpleModuleName": true,
+      "strict": true,
+      "style": "scss",
+      "tags": "scope:???,type:app,platform:desktop",
+      "unitTestRunner": "jest"
+    },
+    "@nrwl/angular:library": {
+      "directory": "tera",
+      "lazy": true,
+      "parentModule": "apps/src/app/app.module.ts",
+      "prefix": "el",
+      "routing": true,
+      "simpleModuleName": true,
+      "tags": "scope:webapp,type:feature,platform:desktop",
+      "unitTestRunner": "jest"
+    },
+    "@nrwl/react": {
+      "application": {
+        "babel": true,
+        "linter": "eslint",
+        "style": "scss"
+      },
+      "component": {
+        "style": "scss"
+      },
+      "library": {
+        "linter": "eslint",
+        "style": "scss"
+      }
+    },
+    "@schematics/angular:component": {
+      "changeDetection": "OnPush",
+      "prefix": "el",
+      "style": "scss",
+      "styleext": "scss"
+    }
+  },
   "implicitDependencies": {
     ".eslintrc.json": "*",
     ".github/workflows/**": "*",
@@ -9,7 +60,6 @@
     "tsconfig.base.json": "*"
   },
   "npmScope": "mondosha1",
-  "projects": {},
   "targetDependencies": {
     "publish": [
       {

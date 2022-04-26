@@ -1,11 +1,4 @@
 {
-  "cli": {
-    "analytics": false,
-    "packageManager": "npm",
-    "warnings": {
-      "typescriptMismatch": false
-    }
-  },
   "projects": {
     "angular-directives": "packages/angular-directives",
     "array": "packages/array",

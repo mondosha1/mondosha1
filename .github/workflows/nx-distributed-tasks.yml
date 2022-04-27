@@ -169,6 +169,7 @@ jobs:
       publishTasksChunkSize: 5
       itTasksChunkSize: 1
       deployTasksChunkSize: 5
+      deployArgocdTasksChunkSize: 1
     outputs:
       DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
       BUILD_TASKS: ${{ steps.BUILD_TASKS.outputs.value }}
@@ -220,6 +221,9 @@ jobs:
       - name: Calculate deploy tasks
         id: DEPLOY_TASKS
         run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js deploy ${{ env.deployTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+      - name: Calculate deploy tasks
+        id: DEPLOY_ARGOCD_TASKS
+        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js deploy-argocd ${{ env.deployArgocdTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
       - name: Display calculated results
         run: |
           echo "--- DISTRIBUTED_TARGETS ---"

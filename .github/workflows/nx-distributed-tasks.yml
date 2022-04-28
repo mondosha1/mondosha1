@@ -43,7 +43,7 @@ jobs:
       GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}
       GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
       GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
-      KUBECONFIG_FILE: ${{ secrets.KUBECONFIG_FILE }}
+      PRODUCTION_TIMESTAMP: ${{ steps.PRODUCTION_TIMESTAMP.outputs.value }}
     steps:
       - id: AUTOFORMAT_ALL_BRANCHES
         run: echo "::set-output name=value::$(echo ${{ secrets.AUTOFORMAT_ALL_BRANCHES }} || '')"

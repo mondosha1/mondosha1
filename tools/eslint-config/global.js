@@ -112,6 +112,10 @@ module.exports = {
             onlyDependOnLibsWithTags: ['platform:server', 'platform:temporal']
           },
           {
+            sourceTag: 'platform:infra',
+            onlyDependOnLibsWithTags: ['platform:infra']
+          },
+          {
             sourceTag: 'scope:accounts',
             onlyDependOnLibsWithTags: ['scope:accounts', 'scope:shared']
           },
@@ -188,6 +192,14 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:temporal', 'scope:shared']
           },
           {
+            sourceTag: 'scope:infra-argocd',
+            onlyDependOnLibsWithTags: ['scope:infra-argocd', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:infra-temporal-server',
+            onlyDependOnLibsWithTags: ['scope:infra-temporal-server', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:dv360',
             onlyDependOnLibsWithTags: ['scope:dv360', 'scope:temporal', 'scope:shared']
           },
@@ -247,7 +259,10 @@ module.exports = {
             sourceTag: 'type:util',
             onlyDependOnLibsWithTags: ['type:util', 'type:data']
           },
-
+          {
+            sourceTag: 'type:helm-chart',
+            onlyDependOnLibsWithTags: ['type:helm-chart', 'type:util']
+          },
           {
             sourceTag: 'type:workflow',
             onlyDependOnLibsWithTags: ['type:util', 'type:workflow', 'type:activity']

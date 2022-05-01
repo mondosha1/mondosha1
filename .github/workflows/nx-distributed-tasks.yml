@@ -479,7 +479,7 @@ jobs:
 
   deploy-argocd:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && join(fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS).tasks) != '' && always()
+    if: github.ref == 'refs/heads/master' && join(fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && always()
     needs: [vars, calculate-targets, it, e2e, e2e-docker]
     strategy:
       fail-fast: false
@@ -496,7 +496,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && always()
+    if: github.ref == 'refs/heads/master' && join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS).tasks) == '' || needs.deploy-argocd.result == 'success') && always()
     needs: [vars, calculate-targets, it, e2e, e2e-docker]
     strategy:
       fail-fast: false

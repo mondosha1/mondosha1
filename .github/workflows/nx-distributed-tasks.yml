@@ -44,6 +44,7 @@ jobs:
       GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
       GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
       PRODUCTION_TIMESTAMP: ${{ steps.PRODUCTION_TIMESTAMP.outputs.value }}
+      DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.value }}
     steps:
       - id: AUTOFORMAT_ALL_BRANCHES
         run: echo "::set-output name=value::$(echo ${{ secrets.AUTOFORMAT_ALL_BRANCHES }} || '')"
@@ -71,6 +72,8 @@ jobs:
         run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_BASE_REF.outputs.value }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
       - id: PRODUCTION_TIMESTAMP
         run: echo "::set-output name=value::$(date +'%Y%m%d_%H%m%S')"
+      - id: DOCKER_HASH_IMAGE_NAME
+        run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}-${{ github.sha }})"
       - name: Display vars
         run: |
           echo "AUTOFORMAT_ALL_BRANCHES: ${{ steps.AUTOFORMAT_ALL_BRANCHES.outputs.value }}"
@@ -81,6 +84,7 @@ jobs:
           echo "GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}"
           echo "GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}"
           echo "PRODUCTION_TIMESTAMP: ${{ steps.PRODUCTION_TIMESTAMP.outputs.value }}"
+          echo "DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.value }}"
 
   install-deps:
     runs-on: ubuntu-latest
@@ -395,7 +399,7 @@ jobs:
       - name: npm set token for installing dedicated Node apps dependencies
         run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }}"
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --imageName=${{ needs.vars.outputs.DOCKER_HASH_IMAGE_NAME }}"
 
   it:
     runs-on: ubuntu-latest
@@ -414,7 +418,7 @@ jobs:
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
         env:
-          GITHASH: ${{ github.sha }}
+          DOCKER_IMAGE_NAME: ${{ needs.vars.outputs.DOCKER_HASH_IMAGE_NAME }}
           BRANCH: ${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
 
@@ -447,7 +451,7 @@ jobs:
         env:
           DEBUG: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
           CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
-          GITHASH: ${{ github.sha }}
+          DOCKER_IMAGE_NAME: ${{ needs.vars.outputs.DOCKER_HASH_IMAGE_NAME }}
           BRANCH: ${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}
         with:
           install: false
@@ -475,7 +479,7 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --tag=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--imageName=${{ needs.vars.outputs.DOCKER_HASH_IMAGE_NAME }} --tag=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
 
   deploy-argocd:
     runs-on: ubuntu-latest

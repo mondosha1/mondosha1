@@ -404,7 +404,7 @@ jobs:
   it:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS).tasks) == '' || needs.docker-build.result == 'success')
+    if: join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS).tasks) == '' || needs.docker-build.result == 'success') && always()
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.IT_TASKS) }}
@@ -425,7 +425,7 @@ jobs:
   e2e-docker:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
-    if: join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS).tasks) == '' || needs.docker-build.result == 'success')
+    if: join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS).tasks) == '' || needs.docker-build.result == 'success') && always()
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS) }}

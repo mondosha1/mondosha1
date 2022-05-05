@@ -136,6 +136,14 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:creative-store', 'scope:shared']
           },
           {
+            sourceTag: 'scope:dashboard',
+            onlyDependOnLibsWithTags: ['scope:dashboard', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:dashboard-chart',
+            onlyDependOnLibsWithTags: ['scope:dashboard-chart', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:director',
             onlyDependOnLibsWithTags: ['scope:director', 'scope:shared']
           },

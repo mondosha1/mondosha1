@@ -1,6 +1,12 @@
 {
   "targets": {
     "build": {
+      "executor": "@nrwl/angular:ng-packagr-lite",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/angular-directives/tsconfig.lib.prod.json"
+        }
+      },
       "dependsOn": [
         {
           "target": "build",
@@ -11,12 +17,6 @@
           "projects": "self"
         }
       ],
-      "executor": "@nrwl/angular:ng-packagr-lite",
-      "configurations": {
-        "production": {
-          "tsConfig": "packages/angular-directives/tsconfig.lib.prod.json"
-        }
-      },
       "options": {
         "project": "packages/angular-directives/ng-package.json",
         "tsConfig": "packages/angular-directives/tsconfig.lib.json"
@@ -33,10 +33,10 @@
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["packages/angular-directives/**/*.ts", "packages/angular-directives/**/*.html"]
-      }
+      },
+      "outputs": ["{options.outputFile}"]
     },
     "publish": {
       "executor": "@nrwl/workspace:run-commands",
@@ -49,11 +49,11 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/packages/angular-directives"],
       "options": {
         "jestConfig": "packages/angular-directives/jest.config.js",
         "passWithNoTests": true
-      }
+      },
+      "outputs": ["coverage/packages/angular-directives"]
     },
     "unpublish": {
       "executor": "@nrwl/workspace:run-commands",
@@ -63,9 +63,9 @@
     }
   },
   "prefix": "bt",
-  "root": "packages/angular-directives",
-  "sourceRoot": "packages/angular-directives/src",
   "projectType": "library",
+  "root": "packages/angular-directives",
   "generators": {},
+  "sourceRoot": "packages/angular-directives/src",
   "tags": ["scope:shared", "type:ui", "platform:desktop", "open-source:mondosha1"]
 }

@@ -1,9 +1,12 @@
 {
-  "root": "packages/string",
-  "sourceRoot": "packages/string/src",
-  "projectType": "library",
   "targets": {
     "build": {
+      "executor": "@nrwl/js:tsc",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/string/tsconfig.lib.prod.json"
+        }
+      },
       "dependsOn": [
         {
           "target": "build",
@@ -14,20 +17,14 @@
           "projects": "self"
         }
       ],
-      "executor": "@nrwl/js:tsc",
-      "outputs": ["{options.outputPath}"],
-      "configurations": {
-        "production": {
-          "tsConfig": "packages/string/tsconfig.lib.prod.json"
-        }
-      },
       "options": {
         "assets": ["packages/string/*.md"],
         "main": "packages/string/src/index.ts",
         "outputPath": "dist/packages/string",
         "packageJson": "packages/string/package.json",
         "tsConfig": "packages/string/tsconfig.lib.json"
-      }
+      },
+      "outputs": ["{options.outputPath}"]
     },
     "bump": {
       "executor": "@nrwl/workspace:run-commands",
@@ -40,10 +37,10 @@
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["packages/string/**/*.ts", "packages/string/**/*.html"]
-      }
+      },
+      "outputs": ["{options.outputFile}"]
     },
     "publish": {
       "executor": "@nrwl/workspace:run-commands",
@@ -57,11 +54,11 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/packages/string"],
       "options": {
         "jestConfig": "packages/string/jest.config.js",
         "passWithNoTests": true
-      }
+      },
+      "outputs": ["coverage/packages/string"]
     },
     "unpublish": {
       "executor": "@nrwl/workspace:run-commands",
@@ -71,5 +68,8 @@
       }
     }
   },
+  "projectType": "library",
+  "root": "packages/string",
+  "sourceRoot": "packages/string/src",
   "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server", "open-source:mondosha1"]
 }

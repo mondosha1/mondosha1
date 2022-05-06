@@ -1,6 +1,12 @@
 {
   "targets": {
     "build": {
+      "executor": "@nrwl/js:tsc",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/jest/tsconfig.lib.prod.json"
+        }
+      },
       "dependsOn": [
         {
           "target": "build",
@@ -11,20 +17,14 @@
           "projects": "self"
         }
       ],
-      "executor": "@nrwl/js:tsc",
-      "outputs": ["{options.outputPath}"],
-      "configurations": {
-        "production": {
-          "tsConfig": "packages/jest/tsconfig.lib.prod.json"
-        }
-      },
       "options": {
         "assets": ["packages/jest/*.md"],
         "main": "packages/jest/src/index.ts",
         "outputPath": "dist/packages/jest",
         "packageJson": "packages/jest/package.json",
         "tsConfig": "packages/jest/tsconfig.lib.json"
-      }
+      },
+      "outputs": ["{options.outputPath}"]
     },
     "bump": {
       "executor": "@nrwl/workspace:run-commands",

@@ -1,9 +1,12 @@
 {
-  "root": "packages/observable",
-  "sourceRoot": "packages/observable/src",
-  "projectType": "library",
   "targets": {
     "build": {
+      "executor": "@nrwl/js:tsc",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/observable/tsconfig.lib.prod.json"
+        }
+      },
       "dependsOn": [
         {
           "target": "build",
@@ -14,20 +17,14 @@
           "projects": "self"
         }
       ],
-      "executor": "@nrwl/js:tsc",
-      "outputs": ["{options.outputPath}"],
-      "configurations": {
-        "production": {
-          "tsConfig": "packages/observable/tsconfig.lib.prod.json"
-        }
-      },
       "options": {
         "assets": ["packages/observable/*.md"],
         "main": "packages/observable/src/index.ts",
         "outputPath": "dist/packages/observable",
         "packageJson": "packages/observable/package.json",
         "tsConfig": "packages/observable/tsconfig.lib.json"
-      }
+      },
+      "outputs": ["{options.outputPath}"]
     },
     "bump": {
       "executor": "@nrwl/workspace:run-commands",
@@ -40,10 +37,10 @@
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["packages/observable/**/*.ts", "packages/observable/**/*.html"]
-      }
+      },
+      "outputs": ["{options.outputFile}"]
     },
     "publish": {
       "executor": "@nrwl/workspace:run-commands",
@@ -57,11 +54,11 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/packages/observable"],
       "options": {
         "jestConfig": "packages/observable/jest.config.js",
         "passWithNoTests": true
-      }
+      },
+      "outputs": ["coverage/packages/observable"]
     },
     "unpublish": {
       "executor": "@nrwl/workspace:run-commands",
@@ -71,5 +68,8 @@
       }
     }
   },
+  "projectType": "library",
+  "root": "packages/observable",
+  "sourceRoot": "packages/observable/src",
   "tags": ["scope:shared", "type:util", "platform:desktop", "open-source:mondosha1"]
 }

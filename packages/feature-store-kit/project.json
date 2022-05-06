@@ -1,6 +1,12 @@
 {
   "targets": {
     "build": {
+      "executor": "@nrwl/angular:ng-packagr-lite",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/feature-store-kit/tsconfig.lib.prod.json"
+        }
+      },
       "dependsOn": [
         {
           "target": "build",
@@ -11,17 +17,11 @@
           "projects": "self"
         }
       ],
-      "executor": "@nrwl/angular:ng-packagr-lite",
-      "outputs": ["dist/packages/feature-store-kit"],
-      "configurations": {
-        "production": {
-          "tsConfig": "packages/feature-store-kit/tsconfig.lib.prod.json"
-        }
-      },
       "options": {
         "project": "packages/feature-store-kit/ng-package.json",
         "tsConfig": "packages/feature-store-kit/tsconfig.lib.json"
-      }
+      },
+      "outputs": ["dist/packages/feature-store-kit"]
     },
     "bump": {
       "executor": "@nrwl/workspace:run-commands",

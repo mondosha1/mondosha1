@@ -238,7 +238,7 @@ module.exports = {
           },
           {
             sourceTag: 'type:e2e',
-            onlyDependOnLibsWithTags: ['type:e2e']
+            onlyDependOnLibsWithTags: ['type:e2e', 'type:util']
           },
           {
             sourceTag: 'type:feature',

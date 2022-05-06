@@ -1,9 +1,12 @@
 {
-  "root": "packages/boolean",
-  "sourceRoot": "packages/boolean/src",
-  "projectType": "library",
   "targets": {
     "build": {
+      "executor": "@nrwl/js:tsc",
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/boolean/tsconfig.lib.prod.json"
+        }
+      },
       "dependsOn": [
         {
           "target": "build",
@@ -14,20 +17,14 @@
           "projects": "self"
         }
       ],
-      "executor": "@nrwl/js:tsc",
-      "outputs": ["{options.outputPath}"],
-      "configurations": {
-        "production": {
-          "tsConfig": "packages/boolean/tsconfig.lib.prod.json"
-        }
-      },
       "options": {
         "assets": ["packages/boolean/*.md"],
         "main": "packages/boolean/src/index.ts",
         "outputPath": "dist/packages/boolean",
         "packageJson": "packages/boolean/package.json",
         "tsConfig": "packages/boolean/tsconfig.lib.json"
-      }
+      },
+      "outputs": ["{options.outputPath}"]
     },
     "bump": {
       "executor": "@nrwl/workspace:run-commands",
@@ -40,10 +37,10 @@
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["packages/boolean/**/*.ts", "packages/boolean/**/*.html"]
-      }
+      },
+      "outputs": ["{options.outputFile}"]
     },
     "publish": {
       "executor": "@nrwl/workspace:run-commands",
@@ -57,11 +54,11 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/packages/boolean"],
       "options": {
         "jestConfig": "packages/boolean/jest.config.js",
         "passWithNoTests": true
-      }
+      },
+      "outputs": ["coverage/packages/boolean"]
     },
     "unpublish": {
       "executor": "@nrwl/workspace:run-commands",
@@ -71,5 +68,8 @@
       }
     }
   },
+  "projectType": "library",
+  "root": "packages/boolean",
+  "sourceRoot": "packages/boolean/src",
   "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server", "open-source:mondosha1"]
 }

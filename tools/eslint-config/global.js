@@ -208,6 +208,34 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:infra-temporal-server', 'scope:shared']
           },
           {
+            sourceTag: 'scope:infra-cert-manager',
+            onlyDependOnLibsWithTags: ['scope:infra-cert-manager', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:infra-external-dns',
+            onlyDependOnLibsWithTags: ['scope:infra-external-dns', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:infra-ingress-nginx',
+            onlyDependOnLibsWithTags: ['scope:infra-ingress-nginx', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:infra-prometheus-stack',
+            onlyDependOnLibsWithTags: ['scope:infra-prometheus-stack', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:infra-redash',
+            onlyDependOnLibsWithTags: ['scope:infra-redash', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:infra-oauth2-proxy',
+            onlyDependOnLibsWithTags: ['scope:infra-oauth2-proxy', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:infra-s3-proxy',
+            onlyDependOnLibsWithTags: ['scope:infra-s3-proxy', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:dv360',
             onlyDependOnLibsWithTags: ['scope:dv360', 'scope:temporal', 'scope:shared']
           },

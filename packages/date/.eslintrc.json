@@ -31,13 +31,8 @@
               "@progress/kendo-angular-dialog",
               "@mondosha1/shared/util-date",
               {
-                "name": "rxjs/operators",
-                "importNames": ["tap"],
-                "message": "Prefer use tap from @mondosha1/shared/util"
-              },
-              {
                 "name": "lodash/fp",
-                "importNames": ["differenceBy", "get", "tap"]
+                "importNames": ["differenceBy", "get"]
               },
               {
                 "name": "@ngrx/store",

@@ -24,13 +24,8 @@ module.exports = {
           'lodash',
           '@progress/kendo-angular-dialog',
           {
-            name: 'rxjs/operators',
-            importNames: ['tap'],
-            message: 'Prefer use tap from @mondosha1/shared/util'
-          },
-          {
             name: 'lodash/fp',
-            importNames: ['tap', 'differenceBy']
+            importNames: ['differenceBy']
           },
           {
             name: '@ngrx/store',

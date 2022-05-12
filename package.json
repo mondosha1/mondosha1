@@ -37,7 +37,7 @@
     "ts-node": "node --max-old-space-size=6000 --stack-size=65500 ./node_modules/ts-node/dist/bin",
     "postinstall": "yarn cleanit:node-modules && yarn ngcc --properties es2015 browser module main && yarn ng:decorate",
     "precommit": "lint-staged",
-    "postcheckout": "cat .nvmrc | nvm use",
+    "postcheckout": "echo \"Expected: $(cat .nvmrc)\nActual: $(node -v)\"",
     "start": "yarn nx serve",
     "test": "yarn nx test",
     "version": "yarn nx run-many --target=bump --all --parallel && git add -A",

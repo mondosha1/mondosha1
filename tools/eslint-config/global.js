@@ -112,11 +112,11 @@ module.exports = {
           },
           {
             sourceTag: 'scope:accounts',
-            onlyDependOnLibsWithTags: ['scope:accounts', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:accounts', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:ads-manager',
-            onlyDependOnLibsWithTags: ['scope:ads-manager', 'scope:accounts', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:ads-manager', 'scope:accounts', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:api-platform',
@@ -124,11 +124,11 @@ module.exports = {
           },
           {
             sourceTag: 'scope:benten-doc',
-            onlyDependOnLibsWithTags: ['scope:benten-doc', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:benten-doc', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:creative-store',
-            onlyDependOnLibsWithTags: ['scope:creative-store', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:creative-store', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:dashboard',
@@ -148,11 +148,11 @@ module.exports = {
           },
           {
             sourceTag: 'scope:extension',
-            onlyDependOnLibsWithTags: ['scope:extension', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:extension', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:demo',
-            onlyDependOnLibsWithTags: ['scope:demo', 'scope:creative-store', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:demo', 'scope:creative-store', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:hasura',
@@ -160,7 +160,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:shared',
-            onlyDependOnLibsWithTags: ['scope:shared']
+            onlyDependOnLibsWithTags: ['scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:site-mondosha1',
@@ -172,7 +172,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:tera',
-            onlyDependOnLibsWithTags: ['scope:tera', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:tera', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:ugonacho',
@@ -184,7 +184,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:whatsnew',
-            onlyDependOnLibsWithTags: ['scope:whatsnew', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:whatsnew', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:temporal-worker',

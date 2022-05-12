@@ -38,6 +38,7 @@
     "postinstall": "yarn cleanit:node-modules && yarn ngcc --properties es2015 browser module main && yarn ng:decorate",
     "precommit": "lint-staged",
     "postcheckout": "echo \"Expected: $(cat .nvmrc)\nActual: $(node -v)\"",
+    "schematic:ng-library": "yarn workspace-generator ng-library",
     "start": "yarn nx serve",
     "test": "yarn nx test",
     "version": "yarn nx run-many --target=bump --all --parallel && git add -A",

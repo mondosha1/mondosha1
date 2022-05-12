@@ -1,6 +1,6 @@
 {
   "name": "@mondosha1/decorators",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "peerDependencies": {
     "lodash": "^4.0.0"
   },

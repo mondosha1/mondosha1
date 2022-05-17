@@ -235,6 +235,10 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:infra-s3-proxy', 'scope:shared']
           },
           {
+            sourceTag: 'scope:plan',
+            onlyDependOnLibsWithTags: ['scope:plan', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:dv360',
             onlyDependOnLibsWithTags: ['scope:dv360', 'scope:temporal', 'scope:shared']
           },

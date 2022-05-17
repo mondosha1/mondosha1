@@ -14,21 +14,23 @@
   "generators": {
     "@nrwl/angular:application": {
       "e2eTestRunner": "cypress",
+      "linter": "eslint",
       "prefix": "el",
       "routing": true,
-      "simpleModuleName": true,
       "strict": true,
       "style": "scss",
       "tags": "scope:???,type:app,platform:desktop",
       "unitTestRunner": "jest"
     },
+    "@nrwl/angular:component": {
+      "style": "scss"
+    },
     "@nrwl/angular:library": {
       "directory": "tera",
       "lazy": true,
-      "parentModule": "apps/src/app/app.module.ts",
+      "linter": "eslint",
       "prefix": "el",
       "routing": true,
-      "simpleModuleName": true,
       "tags": "scope:webapp,type:feature,platform:desktop",
       "unitTestRunner": "jest"
     },

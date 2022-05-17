@@ -71,5 +71,5 @@
   "projectType": "library",
   "root": "packages/observable",
   "sourceRoot": "packages/observable/src",
-  "tags": ["scope:shared", "type:util", "platform:desktop", "open-source:mondosha1"]
+  "tags": ["scope:shared", "type:util", "platform:desktop", "platform:server", "open-source:mondosha1"]
 }

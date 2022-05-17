@@ -119,6 +119,10 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:ads-manager', 'scope:accounts', 'scope:shared', 'scope:benten']
           },
           {
+            sourceTag: 'scope:api',
+            onlyDependOnLibsWithTags: ['scope:api', 'scope:third-party', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:api-platform',
             onlyDependOnLibsWithTags: ['scope:api-platform', 'scope:shared']
           },

@@ -5,6 +5,7 @@ on:
     branches:
       - master
   pull_request:
+    types: ['labeled', 'opened', 'synchronize', 'reopened']
   workflow_dispatch:
     inputs:
       rebuild_all:
@@ -158,6 +159,8 @@ jobs:
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-lint $NX_ARGUMENTS
       - name: nx copybara:check
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-generator copybara --dry-run --no-interactive | (! grep -E 'CREATE|UPDATE|DELETE')
+      - name: nx generator:run-configuration:check
+        run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-generator run-configuration --dry-run --no-interactive | (! grep -E 'CREATE|UPDATE|DELETE')
 
   calculate-targets:
     runs-on: ubuntu-latest

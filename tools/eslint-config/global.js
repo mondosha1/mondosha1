@@ -115,6 +115,10 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:accounts', 'scope:shared', 'scope:benten']
           },
           {
+            sourceTag: 'scope:accounts-chart',
+            onlyDependOnLibsWithTags: ['scope:accounts-chart', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:ads-manager',
             onlyDependOnLibsWithTags: ['scope:ads-manager', 'scope:accounts', 'scope:shared', 'scope:benten']
           },
@@ -237,6 +241,10 @@ module.exports = {
           {
             sourceTag: 'scope:plan',
             onlyDependOnLibsWithTags: ['scope:plan', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:plan-chart',
+            onlyDependOnLibsWithTags: ['scope:plan-chart', 'scope:shared']
           },
           {
             sourceTag: 'scope:dv360',

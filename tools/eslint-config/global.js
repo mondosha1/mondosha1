@@ -100,11 +100,11 @@ module.exports = {
           },
           {
             sourceTag: 'platform:server',
-            onlyDependOnLibsWithTags: ['platform:server']
+            onlyDependOnLibsWithTags: ['platform:server', 'platform:temporal']
           },
           {
             sourceTag: 'platform:temporal',
-            onlyDependOnLibsWithTags: ['platform:server', 'platform:temporal']
+            onlyDependOnLibsWithTags: ['platform:temporal', 'platform:server']
           },
           {
             sourceTag: 'platform:infra',
@@ -124,7 +124,14 @@ module.exports = {
           },
           {
             sourceTag: 'scope:api',
-            onlyDependOnLibsWithTags: ['scope:api', 'scope:third-party', 'scope:shared']
+            onlyDependOnLibsWithTags: [
+              'scope:api',
+              'scope:dv360',
+              'scope:hasura',
+              'scope:temporal',
+              'scope:third-party',
+              'scope:shared'
+            ]
           },
           {
             sourceTag: 'scope:api-platform',
@@ -196,7 +203,13 @@ module.exports = {
           },
           {
             sourceTag: 'scope:temporal-worker',
-            onlyDependOnLibsWithTags: ['scope:temporal', 'scope:dv360', 'scope:shared']
+            onlyDependOnLibsWithTags: [
+              'scope:temporal',
+              'scope:temporal-worker',
+              'scope:hasura',
+              'scope:dv360',
+              'scope:shared'
+            ]
           },
           {
             sourceTag: 'scope:temporal',
@@ -252,7 +265,7 @@ module.exports = {
           },
           {
             sourceTag: 'type:activity',
-            onlyDependOnLibsWithTags: ['type:util']
+            onlyDependOnLibsWithTags: ['type:util', 'type:framework']
           },
           {
             sourceTag: 'type:app',
@@ -282,6 +295,7 @@ module.exports = {
           {
             sourceTag: 'type:feature',
             onlyDependOnLibsWithTags: [
+              'type:activity',
               'type:feature',
               'type:framework',
               'type:data',

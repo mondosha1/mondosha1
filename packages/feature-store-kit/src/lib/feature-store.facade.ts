@@ -13,6 +13,9 @@ export class FeatureStoreFacade<State extends {}, WithMetaState = FeatureStoreSt
   public readonly formState$: Observable<Nullable<FeatureStoreFormState>> = this.store.pipe(
     select(featureStoreQuery.getFormState(), { featureStoreKey: this.featureStoreKey })
   )
+  public readonly isInitializing$: Observable<Nullable<boolean>> = this.store.pipe(
+    select(featureStoreQuery.isInitializing(), { featureStoreKey: this.featureStoreKey })
+  )
   public readonly isBusy$: Observable<Nullable<boolean>> = this.store.pipe(
     select(featureStoreQuery.isBusy(), { featureStoreKey: this.featureStoreKey })
   )

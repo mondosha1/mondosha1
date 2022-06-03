@@ -51,6 +51,11 @@ const getStatus = <State extends {}>(): ParameterizedSelectorWithProps<State, Fe
     isNil(meta) ? null : meta.status
   )
 
+const isInitializing = <State extends {}>(): ParameterizedSelectorWithProps<State, boolean | null> =>
+  createSelector(getStatus(), (status: FeatureStoreStatus | null): boolean | null =>
+    isNil(status) ? null : status === FeatureStoreStatus.Initializing
+  )
+
 const isBusy = <State extends {}>(): ParameterizedSelectorWithProps<State, boolean | null> =>
   createSelector(getStatus(), (stateStatus: FeatureStoreStatus | null): boolean | null =>
     of(stateStatus).pipe(
@@ -99,6 +104,7 @@ export const featureStoreQuery = {
   getStateWithoutMetaData,
   getStatus,
   getValidationStatus,
+  isInitializing,
   isBusy,
   isChanged,
   isReady

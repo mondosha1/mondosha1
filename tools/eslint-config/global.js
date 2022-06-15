@@ -260,6 +260,18 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:plan-chart', 'scope:shared']
           },
           {
+            sourceTag: 'scope:search-foresight',
+            onlyDependOnLibsWithTags: ['scope:search-foresight', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:semantic-booster',
+            onlyDependOnLibsWithTags: ['scope:semantic-booster', 'scope:search-foresight', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:semantic-booster-chart',
+            onlyDependOnLibsWithTags: ['scope:semantic-booster-chart', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:dv360',
             onlyDependOnLibsWithTags: ['scope:dv360', 'scope:temporal', 'scope:shared']
           },

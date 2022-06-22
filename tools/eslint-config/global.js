@@ -162,16 +162,20 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:api-eliauth', 'scope:shared']
           },
           {
-            sourceTag: 'scope:extension',
-            onlyDependOnLibsWithTags: ['scope:extension', 'scope:shared', 'scope:benten']
-          },
-          {
             sourceTag: 'scope:demo',
             onlyDependOnLibsWithTags: ['scope:demo', 'scope:creative-store', 'scope:shared', 'scope:benten']
           },
           {
+            sourceTag: 'scope:extension',
+            onlyDependOnLibsWithTags: ['scope:extension', 'scope:shared', 'scope:benten']
+          },
+          {
             sourceTag: 'scope:hasura',
             onlyDependOnLibsWithTags: ['scope:hasura', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:insight',
+            onlyDependOnLibsWithTags: ['scope:insight', 'scope:shared']
           },
           {
             sourceTag: 'scope:shared',

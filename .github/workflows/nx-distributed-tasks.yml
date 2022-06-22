@@ -515,6 +515,7 @@ jobs:
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
+      - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx deploy
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
 

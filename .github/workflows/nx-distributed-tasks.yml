@@ -517,7 +517,7 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx deploy
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--production_timestamp=${{ needs.vars.outputs.PRODUCTION_TIMESTAMP }}"
 
   success:
     runs-on: ubuntu-latest

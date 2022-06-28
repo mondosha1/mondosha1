@@ -100,6 +100,10 @@ src/jenkins.gdsl
 tags.env
 .run.env
 
+.sbt
+project
+target
+
 # Misc stuff
 v8-compile-cache
 npm-debug.log*

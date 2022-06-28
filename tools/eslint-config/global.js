@@ -377,11 +377,10 @@ module.exports = {
     '@typescript-eslint/quotes': ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/member-delimiter-style': [
-      'off',
+      'error',
       {
         multiline: {
-          delimiter: 'none',
-          requireLast: true
+          delimiter: 'none'
         },
         singleline: {
           delimiter: 'semi',
@@ -390,25 +389,9 @@ module.exports = {
       }
     ],
     '@typescript-eslint/member-ordering': [
-      'off',
+      'error',
       {
-        default: [
-          'public-static-field',
-          'protected-static-field',
-          'private-static-field',
-          'public-instance-field',
-          'protected-instance-field',
-          'private-instance-field',
-          'public-constructor',
-          'protected-constructor',
-          'private-constructor',
-          'public-static-method',
-          'protected-static-method',
-          'private-static-method',
-          'public-instance-method',
-          'protected-instance-method',
-          'private-instance-method'
-        ]
+        default: ['field', 'constructor', 'method']
       }
     ],
     '@typescript-eslint/naming-convention': [

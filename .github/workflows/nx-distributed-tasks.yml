@@ -44,7 +44,7 @@ jobs:
       GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}
       GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
       GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
-      PRODUCTION_TIMESTAMP: ${{ steps.PRODUCTION_TIMESTAMP.outputs.value }}
+      TIMESTAMP: ${{ steps.TIMESTAMP.outputs.value }}
       DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.value }}
     steps:
       - id: AUTOFORMAT_ALL_BRANCHES
@@ -71,7 +71,7 @@ jobs:
           echo "::set-output name=value::$(echo ${REBUILD_ALL_BASE_REF:-${LAST_SUCCESSFUL_COMMIT_COMMIT_HASH:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}}})"
       - id: GITHUB_BASE_SLUG
         run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_BASE_REF.outputs.value }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
-      - id: PRODUCTION_TIMESTAMP
+      - id: TIMESTAMP
         run: echo "::set-output name=value::$(date +'%Y%m%d_%H%m%S')"
       - id: DOCKER_HASH_IMAGE_NAME
         run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}-${{ github.sha }})"
@@ -84,7 +84,7 @@ jobs:
           echo "GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}"
           echo "GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}"
           echo "GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}"
-          echo "PRODUCTION_TIMESTAMP: ${{ steps.PRODUCTION_TIMESTAMP.outputs.value }}"
+          echo "TIMESTAMP: ${{ steps.TIMESTAMP.outputs.value }}"
           echo "DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.value }}"
 
   install-deps:
@@ -487,7 +487,7 @@ jobs:
   deploy-argocd:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && join(fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && always()
-    needs: [vars, calculate-targets, it, e2e, e2e-docker]
+    needs: [vars, calculate-targets, docker-tag, it, e2e, e2e-docker]
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS) }}
@@ -517,7 +517,7 @@ jobs:
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx deploy
-        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--production_timestamp=${{ needs.vars.outputs.PRODUCTION_TIMESTAMP }}"
+        run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--timestamp=${{ needs.vars.outputs.TIMESTAMP }}"
 
   success:
     runs-on: ubuntu-latest

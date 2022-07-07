@@ -261,7 +261,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:plan',
-            onlyDependOnLibsWithTags: ['scope:plan', 'scope:heroiks1', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:plan', 'scope:heroiks1', 'scope:benten', 'scope:shared']
           },
           {
             sourceTag: 'scope:heroiks1-chart',

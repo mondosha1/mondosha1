@@ -256,16 +256,16 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:infra-s3-proxy', 'scope:shared']
           },
           {
-            sourceTag: 'scope:heroiks1',
-            onlyDependOnLibsWithTags: ['scope:heroiks1', 'scope:plan', 'scope:shared']
+            sourceTag: 'scope:heroiks-live',
+            onlyDependOnLibsWithTags: ['scope:heroiks-live', 'scope:plan', 'scope:shared']
           },
           {
             sourceTag: 'scope:plan',
-            onlyDependOnLibsWithTags: ['scope:plan', 'scope:heroiks1', 'scope:benten', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:plan', 'scope:heroiks-live', 'scope:benten', 'scope:shared']
           },
           {
-            sourceTag: 'scope:heroiks1-chart',
-            onlyDependOnLibsWithTags: ['scope:heroiks1-chart', 'scope:shared']
+            sourceTag: 'scope:heroiks-live-chart',
+            onlyDependOnLibsWithTags: ['scope:heroiks-live-chart', 'scope:shared']
           },
           {
             sourceTag: 'scope:search-foresight',

@@ -240,6 +240,10 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:infra-ingress-nginx', 'scope:shared']
           },
           {
+            sourceTag: 'scope:infra-n8n',
+            onlyDependOnLibsWithTags: ['scope:infra-n8n', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:infra-prometheus-stack',
             onlyDependOnLibsWithTags: ['scope:infra-prometheus-stack', 'scope:shared']
           },

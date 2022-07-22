@@ -8,5 +8,9 @@
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
-  "peerDependencies": {}
+  "peerDependencies": {
+    "date-fns": "^2.0.0",
+    "lodash": "^4.0.0",
+    "postgres-interval": "^4.0.0"
+  }
 }

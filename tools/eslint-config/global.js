@@ -112,7 +112,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:accounts',
-            onlyDependOnLibsWithTags: ['scope:accounts', 'scope:shared', 'scope:benten']
+            onlyDependOnLibsWithTags: ['scope:accounts', 'scope:hasura', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:accounts-chart',
@@ -120,7 +120,13 @@ module.exports = {
           },
           {
             sourceTag: 'scope:ads-manager',
-            onlyDependOnLibsWithTags: ['scope:ads-manager', 'scope:accounts', 'scope:shared', 'scope:benten']
+            onlyDependOnLibsWithTags: [
+              'scope:ads-manager',
+              'scope:hasura',
+              'scope:accounts',
+              'scope:shared',
+              'scope:benten'
+            ]
           },
           {
             sourceTag: 'scope:api',
@@ -128,6 +134,7 @@ module.exports = {
               'scope:api',
               'scope:dv360',
               'scope:hasura',
+              'scope:ikenga',
               'scope:temporal',
               'scope:third-party',
               'scope:shared'
@@ -143,7 +150,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:creative-store',
-            onlyDependOnLibsWithTags: ['scope:creative-store', 'scope:shared', 'scope:benten']
+            onlyDependOnLibsWithTags: ['scope:creative-store', 'scope:hasura', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:dashboard',
@@ -163,15 +170,25 @@ module.exports = {
           },
           {
             sourceTag: 'scope:demo',
-            onlyDependOnLibsWithTags: ['scope:demo', 'scope:creative-store', 'scope:shared', 'scope:benten']
+            onlyDependOnLibsWithTags: [
+              'scope:demo',
+              'scope:hasura',
+              'scope:creative-store',
+              'scope:shared',
+              'scope:benten'
+            ]
           },
           {
             sourceTag: 'scope:extension',
-            onlyDependOnLibsWithTags: ['scope:extension', 'scope:shared', 'scope:benten']
+            onlyDependOnLibsWithTags: ['scope:extension', 'scope:hasura', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:hasura',
             onlyDependOnLibsWithTags: ['scope:hasura', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:ikenga',
+            onlyDependOnLibsWithTags: ['scope:ikenga', 'scope:hasura', 'scope:shared']
           },
           {
             sourceTag: 'scope:insight',
@@ -182,28 +199,16 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:shared', 'scope:benten']
           },
           {
-            sourceTag: 'scope:site-mondosha1',
-            onlyDependOnLibsWithTags: ['scope:site-mondosha1', 'scope:website', 'scope:shared']
-          },
-          {
-            sourceTag: 'scope:site-emoteev',
-            onlyDependOnLibsWithTags: ['scope:site-emoteev', 'scope:website', 'scope:shared']
-          },
-          {
             sourceTag: 'scope:tera',
-            onlyDependOnLibsWithTags: ['scope:tera', 'scope:shared', 'scope:benten']
+            onlyDependOnLibsWithTags: ['scope:tera', 'scope:hasura', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:ugonacho',
             onlyDependOnLibsWithTags: ['scope:ugonacho', 'scope:shared']
           },
           {
-            sourceTag: 'scope:website',
-            onlyDependOnLibsWithTags: ['scope:website', 'scope:shared']
-          },
-          {
             sourceTag: 'scope:whatsnew',
-            onlyDependOnLibsWithTags: ['scope:whatsnew', 'scope:shared', 'scope:benten']
+            onlyDependOnLibsWithTags: ['scope:whatsnew', 'scope:hasura', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:temporal-worker',
@@ -261,11 +266,17 @@ module.exports = {
           },
           {
             sourceTag: 'scope:heroiks-live',
-            onlyDependOnLibsWithTags: ['scope:heroiks-live', 'scope:plan', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:heroiks-live', 'scope:hasura', 'scope:plan', 'scope:shared']
           },
           {
             sourceTag: 'scope:plan',
-            onlyDependOnLibsWithTags: ['scope:plan', 'scope:heroiks-live', 'scope:benten', 'scope:shared']
+            onlyDependOnLibsWithTags: [
+              'scope:plan',
+              'scope:hasura',
+              'scope:heroiks-live',
+              'scope:benten',
+              'scope:shared'
+            ]
           },
           {
             sourceTag: 'scope:heroiks-live-chart',
@@ -273,11 +284,16 @@ module.exports = {
           },
           {
             sourceTag: 'scope:search-foresight',
-            onlyDependOnLibsWithTags: ['scope:search-foresight', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:search-foresight', 'scope:hasura', 'scope:shared']
           },
           {
             sourceTag: 'scope:semantic-booster',
-            onlyDependOnLibsWithTags: ['scope:semantic-booster', 'scope:search-foresight', 'scope:shared']
+            onlyDependOnLibsWithTags: [
+              'scope:semantic-booster',
+              'scope:search-foresight',
+              'scope:hasura',
+              'scope:shared'
+            ]
           },
           {
             sourceTag: 'scope:semantic-booster-chart',

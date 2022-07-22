@@ -8,3 +8,6 @@ export type YEAR_AND_MONTH = Brand<string, 'YEAR_AND_MONTH'> // YYYY-MM, eg: 200
 export type ISO_DATE = Brand<string, 'ISO_DATE'> // YYYY-MM-DD, eg: 2000-03-15
 export type ISO_TIME = Brand<string, 'ISO_TIME'> // HH:mm:ss, eg: 05:20:10
 export type ISO_DATETIME = Brand<string, 'ISO_DATETIME'> // YYYY-MM-DDT:HH:mm:ss.SSSZ eg: 2000-03-15T05:20:10.123Z
+
+export type PG_INTERVAL = Brand<string, 'PG_INTERVAL'> // '1 day', '03:00:00'
+export type CRON_EXPRESSION = Brand<string, 'CRON_EXPRESSION'> // * 5 * * *, 0 */5 * ? * *

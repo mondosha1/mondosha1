@@ -1,4 +1,5 @@
 export * from './is-uuid.operator'
+export * from './jwt-token.type'
 export * from './matches.operator'
 export * from './pascal-case.operator'
 export * from './pluralize.operator'

@@ -4,6 +4,7 @@ declare global {
     interface Matchers<R> {
       toBeActionObservable(obs: any): any
       toJsonEqual(obs: any): any
+      toMatchPath(obs: any): any
     }
   }
 }

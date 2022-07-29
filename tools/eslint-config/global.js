@@ -135,6 +135,7 @@ module.exports = {
               'scope:dv360',
               'scope:hasura',
               'scope:ikenga',
+              'scope:maestro',
               'scope:temporal',
               'scope:third-party',
               'scope:shared'
@@ -188,7 +189,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:ikenga',
-            onlyDependOnLibsWithTags: ['scope:ikenga', 'scope:hasura', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:ikenga', 'scope:hasura', 'scope:shared', 'scope:temporal']
           },
           {
             sourceTag: 'scope:insight',
@@ -217,6 +218,9 @@ module.exports = {
               'scope:temporal-worker',
               'scope:hasura',
               'scope:dv360',
+              'scope:ikenga',
+              'scope:maestro',
+              'scope:tam',
               'scope:shared'
             ]
           },
@@ -305,7 +309,7 @@ module.exports = {
           },
           {
             sourceTag: 'type:activity',
-            onlyDependOnLibsWithTags: ['type:util', 'type:framework']
+            onlyDependOnLibsWithTags: ['type:data', 'type:util', 'type:framework']
           },
           {
             sourceTag: 'type:app',

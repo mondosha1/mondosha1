@@ -25,7 +25,7 @@ module.exports = {
           '@progress/kendo-angular-dialog',
           {
             name: 'lodash/fp',
-            importNames: ['differenceBy']
+            importNames: ['differenceBy', 'get']
           },
           {
             name: '@ngrx/store',

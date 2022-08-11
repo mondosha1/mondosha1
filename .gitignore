@@ -116,7 +116,3 @@ localhost.crt
 localhost.key
 
 .angular
-
-# Mocks
-*.csv
-!*.mock.csv

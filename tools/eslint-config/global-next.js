@@ -38,31 +38,31 @@ module.exports = {
       'error',
       {
         name: 'eval',
-        message: "Don't use it."
+        message: "(eval) Don't use it."
       },
       {
         name: ['*', 'forEach'],
-        message: 'Use an expression instead.'
+        message: '(forEach) Use an expression instead.'
       },
       {
         name: ['*', 'forEachRight'],
-        message: 'Use an expression instead.'
+        message: '(forEachRight) Use an expression instead.'
       },
       {
         name: 'forEach',
-        message: 'Use an expression instead.'
+        message: '(forEach) Use an expression instead.'
       },
       {
         name: 'forEachRight',
-        message: 'Use an expression instead.'
+        message: '(forEachRight) Use an expression instead.'
       },
       {
         name: 'forEachObject',
-        message: 'Use an expression instead.'
+        message: '(forEachObject) Use an expression instead.'
       },
       {
         name: ['*', 'toString'],
-        message: "Use 'String()' instead."
+        message: "(toString) Use 'String()' instead."
       }
     ],
     'arrow-body-style': ['error', 'as-needed'],

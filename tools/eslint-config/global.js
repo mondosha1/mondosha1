@@ -221,6 +221,7 @@ module.exports = {
               'scope:ikenga',
               'scope:maestro',
               'scope:tam',
+              'scope:third-party',
               'scope:shared'
             ]
           },
@@ -345,7 +346,8 @@ module.exports = {
               'type:data',
               'type:env',
               'type:ui',
-              'type:util'
+              'type:util',
+              'type:workflow'
             ]
           },
           {
@@ -370,7 +372,7 @@ module.exports = {
           },
           {
             sourceTag: 'type:workflow',
-            onlyDependOnLibsWithTags: ['type:util', 'type:workflow', 'type:activity']
+            onlyDependOnLibsWithTags: ['type:data', 'type:util', 'type:workflow', 'type:activity']
           }
         ],
         enforceBuildableLibDependency: true

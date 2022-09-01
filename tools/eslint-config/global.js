@@ -242,6 +242,10 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:infra-cert-manager', 'scope:shared']
           },
           {
+            sourceTag: 'scope:infra-elasticsearch',
+            onlyDependOnLibsWithTags: ['scope:infra-elasticsearch', 'scope:shared']
+          },
+          {
             sourceTag: 'scope:infra-external-dns',
             onlyDependOnLibsWithTags: ['scope:infra-external-dns', 'scope:shared']
           },

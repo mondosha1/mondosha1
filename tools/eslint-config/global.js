@@ -293,7 +293,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:search-foresight',
-            onlyDependOnLibsWithTags: ['scope:search-foresight', 'scope:hasura', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:search-foresight', 'scope:hasura', 'scope:shared', 'scope:benten']
           },
           {
             sourceTag: 'scope:semantic-booster',

@@ -1,3 +1,4 @@
+export * from './email.type'
 export * from './is-uuid.operator'
 export * from './jwt-token.type'
 export * from './matches.operator'

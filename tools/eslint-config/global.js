@@ -167,7 +167,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:api-eliauth',
-            onlyDependOnLibsWithTags: ['scope:api-eliauth', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:api-eliauth', 'scope:hasura', 'scope:shared']
           },
           {
             sourceTag: 'scope:demo',

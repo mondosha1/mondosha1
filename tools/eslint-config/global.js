@@ -275,7 +275,13 @@ module.exports = {
           },
           {
             sourceTag: 'scope:heroiks-live',
-            onlyDependOnLibsWithTags: ['scope:heroiks-live', 'scope:hasura', 'scope:plan', 'scope:shared']
+            onlyDependOnLibsWithTags: [
+              'scope:heroiks-live',
+              'scope:hasura',
+              'scope:plan',
+              'scope:accounts',
+              'scope:shared'
+            ]
           },
           {
             sourceTag: 'scope:plan',

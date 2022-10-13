@@ -531,6 +531,12 @@ Below are the set of functions are available in formulas.
    <td>Returns true if the each value of given array evaluates the given expression to true.
 <p>eg: <code>EVERY(names, NOT(ISEMPTY))</code></td>
   </tr>
+<tr>
+   <td><strong>IF</strong></td>
+   <td>any</td>
+   <td>Depending of the condition, will return 1st expression if true or the 2nd else.
+<p>eg (optional phoneNumber): <code>IF(ISEMPTY(phoneNumber), false, NOT(REGEX(phoneNumber, "^\\+?\\d{5,}$")))</code></td>
+  </tr>
 </table>
 
 ### Store binding

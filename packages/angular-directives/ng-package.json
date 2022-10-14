@@ -2,7 +2,7 @@
   "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
   "dest": "../../dist/packages/angular-directives",
   "lib": {
-    "styleIncludePaths": ["../../libs/shared"],
+    "styleIncludePaths": ["../../libs/shared", "../../libs/benten"],
     "entryFile": "src/index.ts"
   }
 }

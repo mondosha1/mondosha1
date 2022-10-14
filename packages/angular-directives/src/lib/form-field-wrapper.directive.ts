@@ -45,13 +45,14 @@ export class FormFieldWrapperDirective
   extends Destroyable(Changeable())
   implements DoCheck, FormField, OnChanges, ControlValueAccessor
 {
-  @Input() public formControlName: string
-  @Input() public formControl: AbstractControl
-  @Input('required') public forceRequired: boolean
-  @Input() public label: string
-  @Input() public errorMessage: string = ''
   @Input() public disabled: boolean = false
+  @Input() public errorMessage: string = ''
+  @Input('required') public forceRequired: boolean
+  @Input() public formControl: AbstractControl
+  @Input() public formControlName: string
   @Input() public helperText: string = null
+  @Input() public label: string
+  @Input() public labelAlign: 'left' | 'right' = 'left'
   protected doCheck$: Subject<void> = new Subject<void>()
   private controlRequired: boolean
 

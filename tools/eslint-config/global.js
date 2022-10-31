@@ -193,7 +193,7 @@ module.exports = {
           },
           {
             sourceTag: 'scope:insight',
-            onlyDependOnLibsWithTags: ['scope:insight', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:insight', 'scope:hasura', 'scope:benten', 'scope:shared']
           },
           {
             sourceTag: 'scope:shared',

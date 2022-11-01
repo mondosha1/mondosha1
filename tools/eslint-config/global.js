@@ -278,6 +278,7 @@ module.exports = {
             onlyDependOnLibsWithTags: [
               'scope:heroiks-live',
               'scope:hasura',
+              'scope:insight',
               'scope:plan',
               'scope:accounts',
               'scope:shared'

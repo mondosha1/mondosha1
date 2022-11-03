@@ -1,5 +1,5 @@
 import { ActivatedRouteSnapshot, Params } from '@angular/router'
-import { append, prepend } from '@mondosha1/array'
+import { append, foldEmpty, prepend } from '@mondosha1/array'
 import { negate } from '@mondosha1/boolean'
 import { IMap, of } from '@mondosha1/core'
 import { defaultToNull, fold, foldLeft, foldOn, foldRightOn, Nullable } from '@mondosha1/nullable'
@@ -17,6 +17,7 @@ import {
   extend,
   filter,
   find,
+  first,
   flatMap,
   flatten,
   getOr,
@@ -30,23 +31,25 @@ import {
   mapValues,
   merge,
   pickBy,
+  pipe,
   reduce,
   reduceRight,
   take,
   thru,
-  toPath
+  toPath,
+  values
 } from 'lodash/fp'
 import { FeatureStoreModuleOptions, FeatureStoreState } from './feature-store.state'
 import { FeatureStoreStructure, Structure } from './feature-store.structure'
 
 export interface FeatureStoreActivatedRouteSnapshot {
+  children: FeatureStoreActivatedRouteSnapshot[]
   data: ActivatedRouteSnapshot['data']
+  firstChild?: FeatureStoreActivatedRouteSnapshot
   outlet: ActivatedRouteSnapshot['outlet']
   params: ActivatedRouteSnapshot['params']
   queryParams: ActivatedRouteSnapshot['queryParams']
   url: ActivatedRouteSnapshot['url']
-  children: FeatureStoreActivatedRouteSnapshot[]
-  firstChild?: FeatureStoreActivatedRouteSnapshot
 }
 
 export interface FeatureStoreRouterStoreState extends BaseRouterStoreState {
@@ -177,7 +180,7 @@ export class FeatureStoreRouter {
     filterOutlet?: string
   ): RouterStoreState['root'][] {
     return of(routerState.root.children).pipe(
-      map((route: RouterStoreState['root']) => FeatureStoreRouter.getFirstChild(route)),
+      flatMap((route: RouterStoreState['root']) => FeatureStoreRouter.getFirstChildPerOutlet(route)),
       filter((route: RouterStoreState['root']) => isNil(filterOutlet) || route.outlet === filterOutlet)
     )
   }
@@ -310,10 +313,19 @@ export class FeatureStoreRouter {
         )
   }
 
-  private static getFirstChild<RouterStoreState extends FeatureStoreRouterStoreState>(
+  private static getFirstChildPerOutlet<RouterStoreState extends FeatureStoreRouterStoreState>(
     route: RouterStoreState['root'],
     maxCount: number = 50
-  ): RouterStoreState['root'] {
-    return route.firstChild && maxCount > 0 ? FeatureStoreRouter.getFirstChild(route.firstChild, maxCount - 1) : route
+  ): RouterStoreState['root'][] {
+    return of(route.children).pipe(
+      foldEmpty(
+        [route],
+        pipe(
+          groupBy((child: RouterStoreState['root']) => child.outlet),
+          values,
+          flatMap(_ => FeatureStoreRouter.getFirstChildPerOutlet(first(_), maxCount + 1))
+        )
+      )
+    )
   }
 }

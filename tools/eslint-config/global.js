@@ -276,11 +276,12 @@ module.exports = {
           {
             sourceTag: 'scope:heroiks-live',
             onlyDependOnLibsWithTags: [
-              'scope:heroiks-live',
+              'scope:accounts',
+              'scope:client',
               'scope:hasura',
+              'scope:heroiks-live',
               'scope:insight',
               'scope:plan',
-              'scope:accounts',
               'scope:shared'
             ]
           },

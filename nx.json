@@ -51,8 +51,7 @@
     "@schematics/angular:component": {
       "changeDetection": "OnPush",
       "prefix": "el",
-      "style": "scss",
-      "styleext": "scss"
+      "style": "scss"
     }
   },
   "implicitDependencies": {

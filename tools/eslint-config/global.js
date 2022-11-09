@@ -119,16 +119,6 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:accounts-chart', 'scope:shared']
           },
           {
-            sourceTag: 'scope:ads-manager',
-            onlyDependOnLibsWithTags: [
-              'scope:ads-manager',
-              'scope:hasura',
-              'scope:accounts',
-              'scope:shared',
-              'scope:benten'
-            ]
-          },
-          {
             sourceTag: 'scope:api',
             onlyDependOnLibsWithTags: [
               'scope:api',

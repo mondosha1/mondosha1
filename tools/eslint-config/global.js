@@ -170,10 +170,6 @@ module.exports = {
             ]
           },
           {
-            sourceTag: 'scope:extension',
-            onlyDependOnLibsWithTags: ['scope:extension', 'scope:hasura', 'scope:shared', 'scope:benten']
-          },
-          {
             sourceTag: 'scope:hasura',
             onlyDependOnLibsWithTags: ['scope:hasura', 'scope:shared']
           },

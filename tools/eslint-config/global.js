@@ -125,6 +125,7 @@ module.exports = {
               'scope:dv360',
               'scope:hasura',
               'scope:ikenga',
+              'scope:looker',
               'scope:maestro',
               'scope:temporal',
               'scope:third-party',
@@ -179,7 +180,11 @@ module.exports = {
           },
           {
             sourceTag: 'scope:insight',
-            onlyDependOnLibsWithTags: ['scope:insight', 'scope:hasura', 'scope:benten', 'scope:shared']
+            onlyDependOnLibsWithTags: ['scope:insight', 'scope:looker', 'scope:hasura', 'scope:benten', 'scope:shared']
+          },
+          {
+            sourceTag: 'scope:looker',
+            onlyDependOnLibsWithTags: ['scope:looker', 'scope:hasura', 'scope:shared']
           },
           {
             sourceTag: 'scope:shared',
@@ -267,6 +272,7 @@ module.exports = {
               'scope:hasura',
               'scope:heroiks-live',
               'scope:insight',
+              'scope:looker',
               'scope:plan',
               'scope:shared'
             ]

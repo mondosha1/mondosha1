@@ -114,5 +114,6 @@ gitcommit.txt
 /apps/api-platform/environments/environment-custom.ts
 localhost.crt
 localhost.key
+activity/**/parsed*.csv
 
 .angular

@@ -3,8 +3,8 @@ import { Nil } from './nullable.type'
 
 export function fold<RightInput, LeftOutput, RightOutput>(
   left: ((v: Nil) => LeftOutput) | LeftOutput,
-  right: ((v: RightInput) => RightOutput) | RightOutput = identity
-): (value: RightInput | Nil) => LeftOutput | RightOutput {
+  right: ((v: NonNullable<RightInput>) => RightOutput) | RightOutput = identity
+): (value: NonNullable<RightInput> | Nil) => LeftOutput | RightOutput {
   return foldOn<Nil, RightInput, LeftOutput, RightOutput>(isNil, left, right)
 }
 
@@ -23,13 +23,13 @@ export function foldRight<RightInput, RightOutput>(
 export function foldOn<LeftInput, RightInput = LeftInput, LeftOutput = LeftInput, RightOutput = RightInput>(
   condition: ((v: LeftInput | RightInput) => v is LeftInput) | ((v: LeftInput | RightInput) => boolean) | boolean,
   left: ((v: LeftInput) => LeftOutput) | LeftOutput,
-  right: ((v: RightInput) => RightOutput) | RightOutput = identity
+  right: ((v: NonNullable<RightInput>) => RightOutput) | RightOutput = identity
 ): (value: LeftInput | RightInput) => LeftOutput | RightOutput {
   const leftFn = isFunction(left) ? left : constant(left)
   const rightFn = isFunction(right) ? right : constant(right)
   return (value: LeftInput | RightInput) => {
     const condFn = isFunction(condition) ? condition(value) : condition
-    return condFn ? leftFn(value as LeftInput) : rightFn(value as RightInput)
+    return condFn ? leftFn(value as LeftInput) : rightFn(value as NonNullable<RightInput>)
   }
 }
 

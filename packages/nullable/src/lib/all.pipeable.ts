@@ -4,7 +4,7 @@ import { Nullable } from './nullable.type'
 
 export function all(nullableValues: []): Pipeable<[]>
 export function all<A>(nullableValues: [Nullable<A>]): Pipeable<[A]>
-export function all<A, B>(nullableValues: [Nullable<A>, Nullable<B>]): Pipeable<[A, B]>
+export function all<A, B>(nullableValues: [Nullable<A>, Nullable<B>]): Pipeable<[NonNullable<A>, NonNullable<B>]>
 export function all<A, B, C>(nullableValues: [Nullable<A>, Nullable<B>, Nullable<C>]): Pipeable<[A, B, C]>
 export function all<A, B, C, D>(
   nullableValues: [Nullable<A>, Nullable<B>, Nullable<C>, Nullable<D>]

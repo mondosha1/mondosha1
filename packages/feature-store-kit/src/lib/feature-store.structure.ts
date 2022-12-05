@@ -74,9 +74,9 @@ export interface ValidatorParams {
 }
 
 export interface ValidatorNameWithParams<V extends ValidatorName> {
+  condition?: EXPR_EVAL_EXPRESSION
   name: V
   params?: V extends keyof ValidatorParams ? ValidatorParams[V] : never
-  condition?: EXPR_EVAL_EXPRESSION
 }
 
 export type DefaultValidator<V extends ValidatorName> = V | ValidatorNameWithParams<V>
@@ -87,10 +87,10 @@ export interface CustomValidator {
 }
 
 export interface Field<T> {
+  disabled?: boolean | EXPR_EVAL_EXPRESSION
   items?: FieldGroup<T> | SimpleFieldType
   type: SimpleFieldTypeOrArray
   validators?: Many<DefaultValidator<ValidatorName> | CustomValidator>
-  disabled?: EXPR_EVAL_EXPRESSION
 }
 
 export type SimpleFieldType = 'string' | 'number' | 'boolean' | 'object' | 'date'

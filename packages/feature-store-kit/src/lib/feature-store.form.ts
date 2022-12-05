@@ -33,6 +33,7 @@ import {
   isEqual,
   isNil,
   isNull,
+  isString,
   join,
   keys,
   map as _map,
@@ -62,6 +63,7 @@ import {
 } from 'rxjs/operators'
 import { F, O, S } from 'ts-toolbelt'
 import { FeatureStoreFacade, FeatureStoreFacadeFactory } from './feature-store.facade'
+import { EXPR_EVAL_EXPRESSION } from './feature-store.formula'
 import { FeatureStoreFramework } from './feature-store.framework'
 import { FeatureStoreModuleOptions, FeatureStoreState, ValidationStatus } from './feature-store.state'
 import {
@@ -81,9 +83,9 @@ export enum FormUpdateStrategy {
 
 export interface FeatureStoreFormConfig<State extends {}, RichState extends State> {
   debounce?: number
-  updateStrategy?: FormUpdateStrategy
-  takeUntil$?: Observable<any>
   richState$?: Observable<RichState>
+  takeUntil$?: Observable<any>
+  updateStrategy?: FormUpdateStrategy
 }
 
 export class FeatureStoreFormBuilder<State extends {}, RichState extends State = State> {
@@ -292,7 +294,13 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
       )
   }
 
-  private arrayDisabler(formGroup, condition, state, path, previousIndex): void {
+  private arrayDisabler(
+    formGroup: FormGroup,
+    condition: Nullable<boolean | EXPR_EVAL_EXPRESSION>,
+    state: State,
+    path: string,
+    previousIndex: number
+  ): void {
     this.disable(formGroup, condition, state, path)
     if (previousIndex > 0) {
       this.arrayDisabler(
@@ -384,8 +392,15 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
     >
   }
 
-  private disable(formGroup: FormGroup, condition, state: State, path): void {
-    if (isNil(condition) || FeatureStoreValidators.evaluateExpression(condition, state as IMap)) {
+  private disable(
+    formGroup: FormGroup,
+    condition: Nullable<boolean | EXPR_EVAL_EXPRESSION>,
+    state: State,
+    path: string
+  ): void {
+    const isDisabled =
+      condition === true || (isString(condition) && FeatureStoreValidators.evaluateExpression(condition, state as IMap))
+    if (isDisabled) {
       if (formGroup.get(path).enabled) {
         formGroup.get(path).disable()
       }
@@ -465,7 +480,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
     of(this.getDisablerPaths(pieceOfStructure)).pipe(
       _map((path: string) => {
         const piece = of(pieceOfStructure).pipe(getOr(null, path))
-        const condition: Nullable<string> = of(piece).pipe(get('disabled'))
+        const condition: Nullable<boolean | EXPR_EVAL_EXPRESSION> = of(piece).pipe(get('disabled'))
         if (of(path).pipe(includes('.items.'))) {
           const arrayPath: string = of(path).pipe(split('.items.'), _first)
           const formArray = formGroup.get(arrayPath) as FormArray

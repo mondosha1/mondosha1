@@ -20,7 +20,7 @@ jobs:
   move-code:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - id: COPYBARA_CONFIG
@@ -29,7 +29,7 @@ jobs:
           content="${content//'%'/'%25'}"
           content="${content//$'\n'/'%0A'}"
           content="${content//$'\r'/'%0D'}"
-          echo "::set-output name=value::$content"
+          echo "COPYBARA_CONFIG=$content" >> $GITHUB_OUTPUT
       - uses: olivr/copybara-action@v1.2.3
         with:
           ssh_key: ${{ secrets.SSH_KEY }}

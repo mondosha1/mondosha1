@@ -37,30 +37,33 @@ jobs:
   vars:
     runs-on: ubuntu-latest
     outputs:
-      AUTOFORMAT_ALL_BRANCHES: ${{ steps.AUTOFORMAT_ALL_BRANCHES.outputs.value }}
-      BUILD_LIBRARIES: ${{ steps.BUILD_LIBRARIES.outputs.value }}
-      PUBLISH_LIBRARIES: ${{ steps.PUBLISH_LIBRARIES.outputs.value }}
-      GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}
-      GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}
-      GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}
-      GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}
-      TIMESTAMP: ${{ steps.TIMESTAMP.outputs.value }}
-      DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.value }}
+      AUTOFORMAT_ALL_BRANCHES: ${{ steps.AUTOFORMAT_ALL_BRANCHES.outputs.AUTOFORMAT_ALL_BRANCHES }}
+      BUILD_LIBRARIES: ${{ steps.BUILD_LIBRARIES.outputs.BUILD_LIBRARIES }}
+      PUBLISH_LIBRARIES: ${{ steps.PUBLISH_LIBRARIES.outputs.PUBLISH_LIBRARIES }}
+      GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.GITHUB_HEAD_REF }}
+      GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.GITHUB_HEAD_SLUG }}
+      GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.GITHUB_BASE_REF }}
+      GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.GITHUB_BASE_SLUG }}
+      TIMESTAMP: ${{ steps.TIMESTAMP.outputs.TIMESTAMP }}
+      DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.DOCKER_HASH_IMAGE_NAME }}
+      OLD_LAST_SUCCESS_HASH: ${{ steps.last_successful_commit.outputs.commit_hash }}
+      NEW_LAST_SUCCESS_BASE: ${{ steps.new__last_successful_commit.outputs.base }}
+      NEW_LAST_SUCCESS_HEAD: ${{ steps.new__last_successful_commit.outputs.head }}
     steps:
       - id: AUTOFORMAT_ALL_BRANCHES
-        run: echo "::set-output name=value::$(echo ${{ secrets.AUTOFORMAT_ALL_BRANCHES }} || '')"
+        run: echo "AUTOFORMAT_ALL_BRANCHES=$(echo ${{ secrets.AUTOFORMAT_ALL_BRANCHES }} || '')" >> $GITHUB_OUTPUT
       - id: BUILD_LIBRARIES
-        run: echo "::set-output name=value::$(echo ${{ secrets.BUILD_LIBRARIES }} || '')"
+        run: echo "BUILD_LIBRARIES=$(echo ${{ secrets.BUILD_LIBRARIES }} || '')" >> $GITHUB_OUTPUT
       - id: PUBLISH_LIBRARIES
-        run: echo "::set-output name=value::$(echo ${{ secrets.PUBLISH_LIBRARIES }} || '')"
+        run: echo "PUBLISH_LIBRARIES=$(echo ${{ secrets.PUBLISH_LIBRARIES }} || '' )" >> $GITHUB_OUTPUT
       - id: GITHUB_HEAD_REF
-        run: echo "::set-output name=value::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}})"
+        run: echo "GITHUB_HEAD_REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
       - id: GITHUB_HEAD_SLUG
-        run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_HEAD_REF.outputs.value }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
+        run: echo "GITHUB_HEAD_SLUG=$( echo ${{ steps.GITHUB_HEAD_REF.outputs.GITHUB_HEAD_REF }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}' )" >> $GITHUB_OUTPUT
       - uses: nrwl/last-successful-commit-action@v1
         id: last_successful_commit
         with:
-          branch: ${{ steps.GITHUB_HEAD_REF.outputs.value }}
+          branch: ${{ steps.GITHUB_HEAD_REF.outputs.GITHUB_HEAD_REF }}
           workflow_id: 'nx-distributed-tasks.yml'
           github_token: ${{ secrets.NX_GITHUB_SECRETS }}
       - id: GITHUB_BASE_REF
@@ -68,39 +71,53 @@ jobs:
           REBUILD_ALL=$(echo "${{ github.event.inputs.rebuild_all }}" | awk '{print tolower($0)}')
           REBUILD_ALL_BASE_REF=$(if [[ "$REBUILD_ALL" == "yes" ]] || [[ "$REBUILD_ALL" == "y" ]]; then echo ${GITHUB_REF#refs/heads/}; fi)
           LAST_SUCCESSFUL_COMMIT_COMMIT_HASH="${{ steps.last_successful_commit.outputs.commit_hash }}"
-          echo "::set-output name=value::$(echo ${REBUILD_ALL_BASE_REF:-${LAST_SUCCESSFUL_COMMIT_COMMIT_HASH:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}}})"
+          echo "GITHUB_BASE_REF=$(echo ${REBUILD_ALL_BASE_REF:-${LAST_SUCCESSFUL_COMMIT_COMMIT_HASH:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}}})" >> $GITHUB_OUTPUT
       - id: GITHUB_BASE_SLUG
-        run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_BASE_REF.outputs.value }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')"
+        run: echo "GITHUB_BASE_SLUG=$(echo ${{ steps.GITHUB_BASE_REF.outputs.GITHUB_BASE_REF }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')" >> $GITHUB_OUTPUT
       - id: TIMESTAMP
-        run: echo "::set-output name=value::$(date +'%Y%m%d_%H%m%S')"
+        run: echo "TIMESTAMP=$(date +'%Y%m%d_%H%m%S')" >> $GITHUB_OUTPUT
       - id: DOCKER_HASH_IMAGE_NAME
-        run: echo "::set-output name=value::$(echo ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}-${{ github.sha }})"
+        run: echo "DOCKER_HASH_IMAGE_NAME=$(echo ${{ steps.GITHUB_HEAD_SLUG.outputs.GITHUB_HEAD_SLUG }}-${{ github.sha }})" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Future replacement for nrwl/last-successful-commit-action@v1 - Only here to make comparison with old action
+        uses: nrwl/nx-set-shas@v3
+        id: new__last_successful_commit
+        with:
+          main-branch-name: ${{ steps.GITHUB_HEAD_REF.outputs.GITHUB_HEAD_REF }}
+          workflow-id: 'nx-distributed-tasks.yml'
       - name: Display vars
         run: |
-          echo "AUTOFORMAT_ALL_BRANCHES: ${{ steps.AUTOFORMAT_ALL_BRANCHES.outputs.value }}"
-          echo "BUILD_LIBRARIES: ${{ steps.BUILD_LIBRARIES.outputs.value }}"
-          echo "PUBLISH_LIBRARIES: ${{ steps.PUBLISH_LIBRARIES.outputs.value }}"
-          echo "GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.value }}"
-          echo "GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.value }}"
-          echo "GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.value }}"
-          echo "GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.value }}"
-          echo "TIMESTAMP: ${{ steps.TIMESTAMP.outputs.value }}"
-          echo "DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.value }}"
-
+          echo "AUTOFORMAT_ALL_BRANCHES: ${{ steps.AUTOFORMAT_ALL_BRANCHES.outputs.AUTOFORMAT_ALL_BRANCHES }}"
+          echo "BUILD_LIBRARIES: ${{ steps.BUILD_LIBRARIES.outputs.BUILD_LIBRARIES }}"
+          echo "PUBLISH_LIBRARIES: ${{ steps.PUBLISH_LIBRARIES.outputs.PUBLISH_LIBRARIES }}"
+          echo "GITHUB_HEAD_REF: ${{ steps.GITHUB_HEAD_REF.outputs.GITHUB_HEAD_REF }}"
+          echo "GITHUB_HEAD_SLUG: ${{ steps.GITHUB_HEAD_SLUG.outputs.GITHUB_HEAD_SLUG }}"
+          echo "GITHUB_BASE_REF: ${{ steps.GITHUB_BASE_REF.outputs.GITHUB_BASE_REF }}"
+          echo "GITHUB_BASE_SLUG: ${{ steps.GITHUB_BASE_SLUG.outputs.GITHUB_BASE_SLUG }}"
+          echo "TIMESTAMP: ${{ steps.TIMESTAMP.outputs.TIMESTAMP }}"
+          echo "DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.DOCKER_HASH_IMAGE_NAME }}"
+      - name: Display old and new last_successful_commit vars
+        run: |
+          echo "LAST_SUCCESSFUL_COMMIT_COMMIT_HASH : ${{ steps.last_successful_commit.outputs.commit_hash }}"
+          echo "NEW nrwl/nx-set-shas@v3 base : ${{ steps.new__last_successful_commit.outputs.base }}"
+          echo "NEW nrwl/nx-set-shas@v3 head : ${{ steps.new__last_successful_commit.outputs.head }}"
   install-deps:
     runs-on: ubuntu-latest
     needs: vars
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache node modules
         id: cache-node-modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: Cache Cypress
         id: cache-cypress
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.CYPRESS_CACHE_FOLDER }}
           key: ${{ env.CYPRESS_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
@@ -114,18 +131,17 @@ jobs:
       - name: npm install
         if: steps.cache-node-modules.outputs.cache-hit != 'true' || steps.cache-cypress.outputs.cache-hit != 'true'
         run: rm -rf node_modules ; npm install --from-lock-file --prefer-offline --no-audit --unsafe-perm
-
   precheck:
     runs-on: ubuntu-latest
     needs: [vars, install-deps]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
           fetch-depth: 0
       - name: Cache node modules
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
@@ -137,18 +153,18 @@ jobs:
         run: |
           BASE_REF_WITH_PREFIX=$(if [[ ! "${{ needs.vars.outputs.GITHUB_BASE_REF }}" =~ ^[0-9a-f]{7,40}$ ]]; then echo "origin/"; fi)${{ needs.vars.outputs.GITHUB_BASE_REF }}
           HEAD_REF_WITH_PREFIX=$(if [[ ! "${{ needs.vars.outputs.GITHUB_HEAD_REF }}" =~ ^[0-9a-f]{7,40}$ ]]; then echo "origin/"; fi)${{ needs.vars.outputs.GITHUB_HEAD_REF }}
-          echo "NX_ARGUMENTS=--head=$HEAD_REF_WITH_PREFIX --base=$BASE_REF_WITH_PREFIX" >> $GITHUB_ENV
+          echo "NX_ARGUMENTS=--head=$HEAD_REF_WITH_PREFIX --base=$BASE_REF_WITH_PREFIX" >> $GITHUB_OUTPUT
       - name: Autoformat
         id: autoformat
         if: ${{ contains(github.event.pull_request.labels.*.name, 'autoformat') || (needs.vars.outputs.AUTOFORMAT_ALL_BRANCHES != '') }}
         run: |
           yarn format:write $NX_ARGUMENTS
           yarn affected:lint --fix $NX_ARGUMENTS
-          echo "::set-output name=value::$(./tools/scripts/autofixup-all.sh on ${{ needs.vars.outputs.GITHUB_BASE_REF }} --no-verify >/dev/null 2>&1 && echo 'Autoformat succeeded' || echo 'Autoformat failed or nothing to format')"
-      - run: echo "${{ steps.autoformat.outputs.value }}"
+          echo "autoformat=$(./tools/scripts/autofixup-all.sh on ${{ needs.vars.outputs.GITHUB_BASE_REF }} --no-verify >/dev/null 2>&1 && echo 'Autoformat succeeded' || echo 'Autoformat failed or nothing to format')"  >> $GITHUB_OUTPUT
+      - run: echo "${{ steps.autoformat.outputs.autoformat }}"
       - name: Push formatted files
         uses: ad-m/github-push-action@master
-        if: ${{ (contains(github.event.pull_request.labels.*.name, 'autoformat') || (needs.vars.outputs.AUTOFORMAT_ALL_BRANCHES != '')) && contains(steps.autoformat.outputs.value, 'Autoformat succeeded') }}
+        if: ${{ (contains(github.event.pull_request.labels.*.name, 'autoformat') || (needs.vars.outputs.AUTOFORMAT_ALL_BRANCHES != '')) && contains(steps.autoformat.outputs.autoformat, 'Autoformat succeeded') }}
         with:
           github_token: ${{ secrets.GH_WORKFLOW_TOKEN }}
           branch: ${{ needs.vars.outputs.GITHUB_HEAD_REF }}
@@ -161,7 +177,6 @@ jobs:
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-generator copybara --dry-run --no-interactive | (! grep -E 'CREATE|UPDATE|DELETE')
       - name: nx generator:run-configuration:check
         run: node --max-old-space-size=8000 ./node_modules/@nrwl/cli/bin/nx.js workspace-generator run-configuration --dry-run --no-interactive | (! grep -E 'CREATE|UPDATE|DELETE')
-
   calculate-targets:
     runs-on: ubuntu-latest
     needs: [vars, precheck, install-deps]
@@ -178,23 +193,23 @@ jobs:
       deployTasksChunkSize: 5
       deployArgocdTasksChunkSize: 1
     outputs:
-      DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.value }}
-      BUILD_TASKS: ${{ steps.BUILD_TASKS.outputs.value }}
-      E2E_TASKS: ${{ steps.E2E_TASKS.outputs.value }}
-      E2E_DOCKER_TASKS: ${{ steps.E2E_DOCKER_TASKS.outputs.value }}
-      DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.value }}
-      IT_TASKS: ${{ steps.IT_TASKS.outputs.value }}
-      DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.value }}
-      DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.value }}
-      DEPLOY_ARGOCD_TASKS: ${{ steps.DEPLOY_ARGOCD_TASKS.outputs.value }}
-      PUBLISH_TASKS: ${{ steps.PUBLISH_TASKS.outputs.value }}
+      DISTRIBUTED_TARGETS: ${{ steps.DISTRIBUTED_TARGETS.outputs.DISTRIBUTED_TARGETS }}
+      BUILD_TASKS: ${{ steps.BUILD_TASKS.outputs.BUILD_TASKS }}
+      E2E_TASKS: ${{ steps.E2E_TASKS.outputs.E2E_TASKS }}
+      E2E_DOCKER_TASKS: ${{ steps.E2E_DOCKER_TASKS.outputs.E2E_DOCKER_TASKS }}
+      DOCKER_BUILD_TASKS: ${{ steps.DOCKER_BUILD_TASKS.outputs.DOCKER_BUILD_TASKS }}
+      IT_TASKS: ${{ steps.IT_TASKS.outputs.IT_TASKS }}
+      DOCKER_TAG_TASKS: ${{ steps.DOCKER_TAG_TASKS.outputs.DOCKER_TAG_TASKS }}
+      DEPLOY_TASKS: ${{ steps.DEPLOY_TASKS.outputs.DEPLOY_TASKS }}
+      DEPLOY_ARGOCD_TASKS: ${{ steps.DEPLOY_ARGOCD_TASKS.outputs.DEPLOY_ARGOCD_TASKS }}
+      PUBLISH_TASKS: ${{ steps.PUBLISH_TASKS.outputs.PUBLISH_TASKS }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Cache node modules
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
@@ -203,74 +218,74 @@ jobs:
         run: exit 1
       - name: Calculate distributed targets
         id: DISTRIBUTED_TARGETS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js ${{ env.distributedTargets }} ${{ env.distributedChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "DISTRIBUTED_TARGETS=$(node ./tools/scripts/calculate-targets.js ${{ env.distributedTargets }} ${{ env.distributedChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})" >> $GITHUB_OUTPUT
       - name: Calculate build targets
         id: BUILD_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.BUILD_LIBRARIES != '' && '--build-libraries' || '' }})"
+        run: echo "BUILD_TASKS=$(node ./tools/scripts/calculate-targets.js build ${{ env.buildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }} ${{ needs.vars.outputs.BUILD_LIBRARIES != '' && '--build-libraries' || '' }})" >> $GITHUB_OUTPUT
       - name: Calculate e2e targets
         id: E2E_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e ${{ env.e2eTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "E2E_TASKS=$(node ./tools/scripts/calculate-targets.js e2e ${{ env.e2eTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})" >> $GITHUB_OUTPUT
       - name: Calculate e2e docker targets
         id: E2E_DOCKER_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js e2e-docker ${{ env.e2eDockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "E2E_DOCKER_TASKS=$(node ./tools/scripts/calculate-targets.js e2e-docker ${{ env.e2eDockerTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})" >> $GITHUB_OUTPUT
       - name: Calculate docker build tasks
         id: DOCKER_BUILD_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-build ${{ env.dockerBuildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "DOCKER_BUILD_TASKS=$(node ./tools/scripts/calculate-targets.js docker-build ${{ env.dockerBuildTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})" >> $GITHUB_OUTPUT
       - name: Calculate IT tasks
         id: IT_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js it ${{ env.itTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "IT_TASKS=$(node ./tools/scripts/calculate-targets.js it ${{ env.itTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})" >> $GITHUB_OUTPUT
       - name: Calculate docker tag tasks
         id: DOCKER_TAG_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js docker-tag ${{ env.dockerTagTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "DOCKER_TAG_TASKS=$(node ./tools/scripts/calculate-targets.js docker-tag ${{ env.dockerTagTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})" >> $GITHUB_OUTPUT
       - name: Calculate publish tasks
         id: PUBLISH_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js publish ${{ env.publishTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "PUBLISH_TASKS=$(node ./tools/scripts/calculate-targets.js publish ${{ env.publishTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})" >> $GITHUB_OUTPUT
       - name: Calculate deploy tasks
         id: DEPLOY_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js deploy ${{ env.deployTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "DEPLOY_TASKS=$(node ./tools/scripts/calculate-targets.js deploy ${{ env.deployTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})" >> $GITHUB_OUTPUT
       - name: Calculate deploy tasks
         id: DEPLOY_ARGOCD_TASKS
-        run: echo "::set-output name=value::$(node ./tools/scripts/calculate-targets.js deploy-argocd ${{ env.deployArgocdTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})"
+        run: echo "DEPLOY_ARGOCD_TASKS=$(node ./tools/scripts/calculate-targets.js deploy-argocd ${{ env.deployArgocdTasksChunkSize }} ${{ needs.vars.outputs.GITHUB_HEAD_REF }} ${{ needs.vars.outputs.GITHUB_BASE_REF }})" >> $GITHUB_OUTPUT
       - name: Display calculated results
         run: |
           echo "--- DISTRIBUTED_TARGETS ---"
-          echo "${{ steps.DISTRIBUTED_TARGETS.outputs.value }}"
+          echo "${{ steps.DISTRIBUTED_TARGETS.outputs.DISTRIBUTED_TARGETS }}"
           echo ""
           echo ""
           echo "--- BUILD_TASKS ---"
-          echo "${{ steps.BUILD_TASKS.outputs.value }}"
+          echo "${{ steps.BUILD_TASKS.outputs.BUILD_TASKS }}"
           echo ""
           echo ""
           echo "--- E2E_TASKS ---"
-          echo "${{ steps.E2E_TASKS.outputs.value }}"
+          echo "${{ steps.E2E_TASKS.outputs.E2E_TASKS }}"
           echo ""
           echo ""
           echo "--- DOCKER_BUILD_TASKS ---"
-          echo "${{ steps.DOCKER_BUILD_TASKS.outputs.value }}"
+          echo "${{ steps.DOCKER_BUILD_TASKS.outputs.DOCKER_BUILD_TASKS }}"
           echo ""
           echo ""
           echo "--- IT_TASKS ---"
-          echo "${{ steps.IT_TASKS.outputs.value }}"
+          echo "${{ steps.IT_TASKS.outputs.IT_TASKS }}"
           echo ""
           echo ""
           echo "--- E2E_DOCKER_TASKS ---"
-          echo "${{ steps.E2E_DOCKER_TASKS.outputs.value }}"
+          echo "${{ steps.E2E_DOCKER_TASKS.outputs.E2E_DOCKER_TASKS }}"
           echo ""
           echo ""
           echo "--- DOCKER_TAG_TASKS ---"
-          echo "${{ steps.DOCKER_TAG_TASKS.outputs.value }}"
+          echo "${{ steps.DOCKER_TAG_TASKS.outputs.DOCKER_TAG_TASKS }}"
           echo ""
           echo ""
           echo "--- PUBLISH_TASKS ---"
-          echo "${{ steps.PUBLISH_TASKS.outputs.value }}"
+          echo "${{ steps.PUBLISH_TASKS.outputs.PUBLISH_TASKS }}"
           echo ""
           echo ""
           echo "--- DEPLOY_ARGOCD_TASKS ---"
-          echo "${{ steps.DEPLOY_ARGOCD_TASKS.outputs.value }}"
+          echo "${{ steps.DEPLOY_ARGOCD_TASKS.outputs.DEPLOY_ARGOCD_TASKS }}"
           echo ""
           echo ""
           echo "--- DEPLOY_TASKS ---"
-          echo "${{ steps.DEPLOY_TASKS.outputs.value }}"
+          echo "${{ steps.DEPLOY_TASKS.outputs.DEPLOY_TASKS }}"
 
   distributed-task:
     runs-on: ubuntu-latest
@@ -281,27 +296,14 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DISTRIBUTED_TARGETS) }}
     steps:
-      - id: TASK_HASH
-        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')"
-      - id: TASK_PREFIX
-        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')"
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
-      - name: Upload test artifacts
-        if: startsWith(matrix.tasks, 'test:')
-        uses: actions/upload-artifact@v2.2.2
-        with:
-          name: ${{ env.TEST_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
-          path: |
-            report
-            coverage
-
   build:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
@@ -311,19 +313,14 @@ jobs:
       matrix: ${{ fromJson(needs.calculate-targets.outputs.BUILD_TASKS) }}
       fail-fast: false
     steps:
-      - id: TASK_HASH
-        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')"
-      - id: TASK_PREFIX
-        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')"
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
-
   e2e:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets]
@@ -334,24 +331,24 @@ jobs:
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_TASKS) }}
     steps:
       - id: TASK_HASH
-        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')"
+        run: echo "TASK_HASH=$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')" >> $GITHUB_OUTPUT
       - id: TASK_PREFIX
-        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')"
-      - uses: actions/checkout@v2
+        run: echo "TASK_PREFIX=$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: npm set token
         run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: Cache Cypress
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.CYPRESS_CACHE_FOLDER }}
           key: ${{ env.CYPRESS_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: nx ${{ matrix.tasks }}
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         env:
           DEBUG: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
           CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
@@ -360,11 +357,10 @@ jobs:
           command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --configuration=production
       - name: Upload e2e artifacts
         if: always()
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.E2E_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
+          name: ${{ env.E2E_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.TASK_PREFIX}}-${{ steps.TASK_HASH.outputs.TASK_HASH }}
           path: dist
-
   publish:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, build]
@@ -373,9 +369,9 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.PUBLISH_TASKS) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
@@ -383,7 +379,6 @@ jobs:
         run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: nx publish
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
-
   docker-build:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, build]
@@ -392,9 +387,9 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_BUILD_TASKS) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
@@ -403,7 +398,6 @@ jobs:
         run: echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--githash=${{ github.sha }} --imageName=${{ needs.vars.outputs.DOCKER_HASH_IMAGE_NAME }}"
-
   it:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
@@ -413,9 +407,9 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.IT_TASKS) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
@@ -425,7 +419,6 @@ jobs:
           DOCKER_IMAGE_NAME: ${{ needs.vars.outputs.DOCKER_HASH_IMAGE_NAME }}
           BRANCH: ${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
-
   e2e-docker:
     runs-on: ubuntu-latest
     needs: [vars, calculate-targets, docker-build]
@@ -436,23 +429,23 @@ jobs:
       matrix: ${{ fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS) }}
     steps:
       - id: TASK_HASH
-        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')"
+        run: echo "TASK_HASH=$(echo ${{ matrix.tasks }} | md5sum | awk '{print $1}')" >> $GITHUB_OUTPUT
       - id: TASK_PREFIX
-        run: echo "::set-output name=value::$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')"
-      - uses: actions/checkout@v2
+        run: echo "TASK_PREFIX=$(echo ${{ matrix.tasks }} | sed 's/,.*//' | sed 's/.*:/--/')" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: Cache Cypress
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.CYPRESS_CACHE_FOLDER }}
           key: ${{ env.CYPRESS_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         env:
           DEBUG: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
           CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE: ${{ env.CYPRESS_PLUGIN__VERBOSE_LOGS__DEBUG_MODE }}
@@ -463,11 +456,10 @@ jobs:
           command: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
       - name: Upload e2e artifacts
         if: always()
-        uses: actions/upload-artifact@v2.2.2
+        uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.E2E_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.value}}-${{ steps.TASK_HASH.outputs.value }}
+          name: ${{ env.E2E_ARTIFACTS }}-${{steps.TASK_PREFIX.outputs.TASK_PREFIX}}-${{ steps.TASK_HASH.outputs.TASK_HASH }}
           path: dist
-
   docker-tag:
     if: join(fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && needs.docker-build.result == 'success' && always()
     runs-on: ubuntu-latest
@@ -476,16 +468,15 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx ${{ matrix.tasks }}
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--imageName=${{ needs.vars.outputs.DOCKER_HASH_IMAGE_NAME }} --tag=${{ needs.vars.outputs.GITHUB_HEAD_SLUG }}"
-
   deploy-argocd:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && join(fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && always()
@@ -494,15 +485,14 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - name: nx deploy-argocd
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }}
-
   deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) != '' && (join(fromJson(needs.calculate-targets.outputs.IT_TASKS).tasks) == '' || needs.it.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_TASKS).tasks) == '' || needs.e2e.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.E2E_DOCKER_TASKS).tasks) == '' || needs.e2e-docker.result == 'success') && (join(fromJson(needs.calculate-targets.outputs.DEPLOY_ARGOCD_TASKS).tasks) == '' || needs.deploy-argocd.result == 'success') && always()
@@ -511,16 +501,15 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ env.DEPENDENCIES_CACHE }}-${{ secrets.CACHE_GITHUB_ACTION_BUSTER_KEY }}-${{ hashFiles('package-lock.json') }}
       - run: docker login -u ${{ secrets.DOCKER_USER }} -p "${{ secrets.DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY }}
       - name: nx deploy
         run: node ./tools/scripts/run-tasks.js ${{ matrix.tasks }} --args="--timestamp=${{ needs.vars.outputs.TIMESTAMP }}"
-
   success:
     runs-on: ubuntu-latest
     if: (join(fromJson(needs.calculate-targets.outputs.DOCKER_TAG_TASKS).tasks) == '' || needs.docker-tag.result == 'success') && ((needs.vars.outputs.PUBLISH_LIBRARIES == '') || (join(fromJson(needs.calculate-targets.outputs.PUBLISH_TASKS).tasks) == '') || needs.publish.result == 'success') && (github.ref != 'refs/heads/master' || join(fromJson(needs.calculate-targets.outputs.DEPLOY_TASKS).tasks) == '' || needs.deploy.result == 'success') && always()

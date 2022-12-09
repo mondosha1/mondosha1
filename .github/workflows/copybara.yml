@@ -1,6 +1,7 @@
 name: Copybara
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -23,13 +24,11 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - id: COPYBARA_CONFIG
+      - id: setup-copybara-config
         run: |
-          content=`cat .github/workflows/copybara/copybara.config.json`
-          content="${content//'%'/'%25'}"
-          content="${content//$'\n'/'%0A'}"
-          content="${content//$'\r'/'%0D'}"
-          echo "COPYBARA_CONFIG=$content" >> $GITHUB_OUTPUT
+          echo 'COPYBARA_CONFIG<<EOF' >> $GITHUB_ENV
+          cat ./.github/workflows/copybara/copybara.config.json >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
       - uses: olivr/copybara-action@v1.2.3
         with:
           ssh_key: ${{ secrets.SSH_KEY }}
@@ -38,6 +37,6 @@ jobs:
           sot_branch: master
           destination_repo: mondosha1/mondosha1
           destination_branch: master
-          push_include: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushInclude }}
-          push_replace: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushReplace }}
-          push_move: ${{ fromJson(steps.COPYBARA_CONFIG.outputs.value).pushMove }}
+          push_include: ${{ fromJson(env.COPYBARA_CONFIG).pushInclude }}
+          push_replace: ${{ fromJson(env.COPYBARA_CONFIG).pushReplace }}
+          push_move: ${{ fromJson(env.COPYBARA_CONFIG).pushMove }}

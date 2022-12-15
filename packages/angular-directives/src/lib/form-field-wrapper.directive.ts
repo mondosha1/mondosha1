@@ -1,7 +1,9 @@
 import {
   ChangeDetectorRef,
+  ContentChild,
   Directive,
   DoCheck,
+  ElementRef,
   forwardRef,
   Host,
   Inject,
@@ -26,7 +28,7 @@ import { foldLeftOn, Nullable } from '@mondosha1/nullable'
 import { EMPTY_OBJECT, get, mapObject } from '@mondosha1/object'
 import { allowLatecomers } from '@mondosha1/observable'
 import { first, isEmpty, isEqual, isFunction, isNil, isUndefined, map as _map, pickBy, some, template } from 'lodash/fp'
-import { combineLatest, merge, Observable, of, Subject } from 'rxjs'
+import { BehaviorSubject, combineLatest, merge, Observable, of, Subject } from 'rxjs'
 import { distinctUntilChanged, filter, map, mapTo, startWith, switchMap, takeUntil, tap } from 'rxjs/operators'
 
 export const FORM_FIELD_ERROR_MESSAGES = new InjectionToken<'FORM_FIELD_ERROR_MESSAGES'>('FORM_FIELD_ERROR_MESSAGES')
@@ -40,11 +42,18 @@ export function formFieldAccessor(component) {
   }
 }
 
+@Directive({
+  selector: '[btHelperTextTemplate]'
+})
+export class HelperTextTemplateDirective {}
+
 @Directive()
 export class FormFieldWrapperDirective
   extends Destroyable(Changeable())
   implements DoCheck, FormField, OnChanges, ControlValueAccessor
 {
+  // Allow more dynamic content than simple helperText. Can't be used if helperText is present.
+  public readonly helperTextContent$: BehaviorSubject<Nullable<ElementRef>> = new BehaviorSubject(null)
   @Input() public disabled: boolean = false
   @Input() public errorMessage: string = ''
   @Input('required') public forceRequired: boolean
@@ -75,6 +84,12 @@ export class FormFieldWrapperDirective
       ),
       this.errors$.pipe(map(errors => this.getErrorMessage(errors)))
     ).pipe(map(([customError, formError]: [string, string]) => _of(customError).pipe(foldLeftOn(isEmpty, formError))))
+  }
+
+  @ContentChild(HelperTextTemplateDirective, { read: ElementRef, static: false }) public set helperTextContent(
+    content: ElementRef
+  ) {
+    this.helperTextContent$.next(content)
   }
 
   @Lazy()
@@ -112,8 +127,15 @@ export class FormFieldWrapperDirective
 
   @Lazy()
   public get showHelperText$(): Observable<boolean> {
-    return combineLatest([this.showErrorMessage$, this.changeByName$('helperText')]).pipe(
-      map(([showErrorMessage, changes]: [boolean, IMap]) => !showErrorMessage && !isEmpty(changes.helperText))
+    return combineLatest([
+      this.showErrorMessage$.pipe(startWith(false)),
+      this.changeByName$('helperText').pipe(startWith('')),
+      this.helperTextContent$
+    ]).pipe(
+      map(
+        ([showErrorMessage, changes, helperTextRef]: [boolean, IMap, ElementRef]) =>
+          !showErrorMessage && (!isEmpty(changes.helperText) || !isEmpty(helperTextRef))
+      )
     )
   }
 

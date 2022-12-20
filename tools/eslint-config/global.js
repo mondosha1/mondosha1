@@ -276,6 +276,7 @@ module.exports = {
             onlyDependOnLibsWithTags: [
               'scope:accounts',
               'scope:client',
+              'scope:internal',
               'scope:hasura',
               'scope:heroiks-live',
               'scope:insight',

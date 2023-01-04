@@ -63,6 +63,12 @@
   },
   "npmScope": "mondosha1",
   "targetDependencies": {
+    "deploy": [
+      {
+        "target": "docker-tag",
+        "projects": "dependencies"
+      }
+    ],
     "publish": [
       {
         "target": "build",

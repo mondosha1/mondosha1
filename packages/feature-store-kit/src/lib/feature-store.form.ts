@@ -50,6 +50,7 @@ import {
 import { Observable } from 'rxjs'
 import {
   debounceTime,
+  delay,
   distinctUntilChanged,
   filter,
   first,
@@ -356,6 +357,7 @@ export class FeatureStoreFormBuilder<State extends {}, RichState extends State =
         filter((askForValidation: Nullable<boolean>) => askForValidation === true),
         tap(() => markFormAndDescendantsAsDirty(formGroup)),
         tap(() => this.featureStoreFacade.askForValidation(false)),
+        delay(debounce),
         takeUntil(takeUntil$)
       )
       .subscribe(() => this.featureStoreFacade.submit())

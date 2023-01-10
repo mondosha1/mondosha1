@@ -10,7 +10,7 @@
       "typescriptMismatch": false
     }
   },
-  "defaultProject": "tera",
+  "defaultProject": "heroiks-live",
   "generators": {
     "@nrwl/angular:application": {
       "e2eTestRunner": "cypress",
@@ -24,15 +24,6 @@
     },
     "@nrwl/angular:component": {
       "style": "scss"
-    },
-    "@nrwl/angular:library": {
-      "directory": "tera",
-      "lazy": true,
-      "linter": "eslint",
-      "prefix": "el",
-      "routing": true,
-      "tags": "scope:webapp,type:feature,platform:desktop",
-      "unitTestRunner": "jest"
     },
     "@nrwl/react": {
       "application": {

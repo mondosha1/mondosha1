@@ -198,10 +198,6 @@ module.exports = {
             onlyDependOnLibsWithTags: ['scope:shared', 'scope:benten']
           },
           {
-            sourceTag: 'scope:tera',
-            onlyDependOnLibsWithTags: ['scope:tera', 'scope:hasura', 'scope:shared', 'scope:benten']
-          },
-          {
             sourceTag: 'scope:ugonacho',
             onlyDependOnLibsWithTags: ['scope:ugonacho', 'scope:shared']
           },

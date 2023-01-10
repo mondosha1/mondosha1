@@ -1,4 +1,14 @@
 {
+  "disabled": {
+    "shared-data-feature-toggle": {
+      "this.file": {
+        "shared-data-feature-toggle": "libs/shared/data-feature-toggle"
+      },
+      "tsconfig.base.json": {
+        "@elium/shared/data-feature-toggle": ["libs/shared/data-feature-toggle/src/index.ts"]
+      }
+    }
+  },
   "projects": {
     "angular-directives": "packages/angular-directives",
     "array": "packages/array",

@@ -285,6 +285,7 @@ module.exports = {
             sourceTag: 'scope:plan',
             onlyDependOnLibsWithTags: [
               'scope:plan',
+              'scope:client',
               'scope:hasura',
               'scope:heroiks-live',
               'scope:benten',

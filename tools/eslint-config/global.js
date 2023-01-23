@@ -112,7 +112,13 @@ module.exports = {
           },
           {
             sourceTag: 'scope:accounts',
-            onlyDependOnLibsWithTags: ['scope:accounts', 'scope:hasura', 'scope:shared', 'scope:benten']
+            onlyDependOnLibsWithTags: [
+              'scope:accounts',
+              'scope:internal',
+              'scope:hasura',
+              'scope:shared',
+              'scope:benten'
+            ]
           },
           {
             sourceTag: 'scope:accounts-chart',

@@ -33,6 +33,7 @@
       "@mondosha1/string": ["packages/string/src/index.ts"]
     },
     "removeComments": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "target": "es2017",

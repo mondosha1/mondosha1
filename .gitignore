@@ -95,6 +95,7 @@ src/jenkins.gdsl
 /elium-config/*
 
 # Env files
+local-config/*
 .local.env
 .env.local
 tags.env

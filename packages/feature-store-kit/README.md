@@ -402,6 +402,11 @@ Below are the set of functions are available in formulas.
    <td>Return true if the given expression is empty (<code>null</code>, <code>undefined</code>, <code>false</code>, <code>0</code>, <code>NaN</code>, <code>''</code>, <code>[]</code>)</td>
   </tr>
   <tr>
+   <td><strong>ISUUID</strong></td>
+   <td>boolean</td>
+   <td>Return true if the given expression is a UUID (based on our operator idUuid from '@mondosha1/shared/util-string')</td>
+  </tr>
+  <tr>
    <td><strong>ISINTEGER</strong></td>
    <td>boolean</td>
    <td>Return true if the given expression is an integer</td>

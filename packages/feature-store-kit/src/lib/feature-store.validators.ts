@@ -6,6 +6,7 @@ import { isLeft } from '@mondosha1/either'
 import { defaultToNull } from '@mondosha1/nullable'
 import { get, toString } from '@mondosha1/object'
 import { wrapIntoObservable } from '@mondosha1/observable'
+import { isUuid } from '@mondosha1/string'
 import { format, startOfDay } from 'date-fns/fp'
 import { Parser } from 'expr-eval'
 import {
@@ -69,6 +70,7 @@ import {
 export class FeatureStoreValidators {
   private static readonly customFunctions = {
     ISEMPTY: value => (_isNumber(value) ? value === 0 : isEmpty(value)),
+    ISUUID: value => isUuid(value),
     ISINTEGER: _isInteger,
     ISNUMBER: isFinite,
     ISURL: value => new RegExp(HTTP_URL_PATTERN).test(value),

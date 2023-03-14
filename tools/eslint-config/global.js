@@ -92,7 +92,7 @@ module.exports = {
     '@nrwl/nx/enforce-module-boundaries': [
       'error',
       {
-        allow: ['@angular/core/testing', '@mondosha1/shared/data-core/mocks', '@mondosha1/shared/util/testing'],
+        allow: ['@angular/core/testing', '@mondosha1/shared/util/testing'],
         depConstraints: [
           {
             sourceTag: 'platform:desktop',
@@ -139,10 +139,6 @@ module.exports = {
             ]
           },
           {
-            sourceTag: 'scope:api-platform',
-            onlyDependOnLibsWithTags: ['scope:api-platform', 'scope:shared']
-          },
-          {
             sourceTag: 'scope:benten-doc',
             onlyDependOnLibsWithTags: ['scope:benten-doc', 'scope:shared', 'scope:benten']
           },
@@ -161,10 +157,6 @@ module.exports = {
           {
             sourceTag: 'scope:director',
             onlyDependOnLibsWithTags: ['scope:director', 'scope:shared']
-          },
-          {
-            sourceTag: 'scope:api-eliauth',
-            onlyDependOnLibsWithTags: ['scope:api-eliauth', 'scope:hasura', 'scope:shared']
           },
           {
             sourceTag: 'scope:demo',

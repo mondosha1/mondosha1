@@ -90,8 +90,8 @@ tools/pgp/configs/*
 # Jenkins dev
 src/jenkins.gdsl
 
-# Configs for other Elium services (Maestro, statam, etc...)
-# <!> DO NOT COMMIT THOSE FILES <!>
+# Configs and secrets for Elium services and others (Temporal, etc...)
+# <!> DO NOT COMMIT THOSE FILES : Already inside platform-secrets repo<!>
 /elium-config/*
 
 # Env files
@@ -112,7 +112,6 @@ npm-debug.log*
 .DS_Store
 tmp/*
 gitcommit.txt
-/apps/api-platform/environments/environment-custom.ts
 localhost.crt
 localhost.key
 activity/**/parsed*.csv

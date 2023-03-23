@@ -47,9 +47,8 @@ jobs:
       TIMESTAMP: ${{ steps.TIMESTAMP.outputs.TIMESTAMP }}
       DATE: ${{ steps.DATE.outputs.DATE }}
       DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.DOCKER_HASH_IMAGE_NAME }}
-      OLD_LAST_SUCCESS_HASH: ${{ steps.last_successful_commit.outputs.commit_hash }}
-      NEW_LAST_SUCCESS_BASE: ${{ steps.new__last_successful_commit.outputs.base }}
-      NEW_LAST_SUCCESS_HEAD: ${{ steps.new__last_successful_commit.outputs.head }}
+      LAST_SUCCESS_COMMIT_BASE: ${{ steps.last_successful_commit.outputs.base }}
+      LAST_SUCCESS_COMMIT_HEAD: ${{ steps.last_successful_commit.outputs.head }}
 
     steps:
       - id: AUTOFORMAT_ALL_BRANCHES
@@ -62,20 +61,6 @@ jobs:
         run: echo "GITHUB_HEAD_REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
       - id: GITHUB_HEAD_SLUG
         run: echo "GITHUB_HEAD_SLUG=$( echo ${{ steps.GITHUB_HEAD_REF.outputs.GITHUB_HEAD_REF }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}' )" >> $GITHUB_OUTPUT
-      - uses: nrwl/last-successful-commit-action@v1
-        id: last_successful_commit
-        with:
-          branch: ${{ steps.GITHUB_HEAD_REF.outputs.GITHUB_HEAD_REF }}
-          workflow_id: 'nx-distributed-tasks.yml'
-          github_token: ${{ secrets.NX_GITHUB_SECRETS }}
-      - id: GITHUB_BASE_REF
-        run: |
-          REBUILD_ALL=$(echo "${{ github.event.inputs.rebuild_all }}" | awk '{print tolower($0)}')
-          REBUILD_ALL_BASE_REF=$(if [[ "$REBUILD_ALL" == "yes" ]] || [[ "$REBUILD_ALL" == "y" ]]; then echo ${GITHUB_REF#refs/heads/}; fi)
-          LAST_SUCCESSFUL_COMMIT_COMMIT_HASH="${{ steps.last_successful_commit.outputs.commit_hash }}"
-          echo "GITHUB_BASE_REF=$(echo ${REBUILD_ALL_BASE_REF:-${LAST_SUCCESSFUL_COMMIT_COMMIT_HASH:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}}})" >> $GITHUB_OUTPUT
-      - id: GITHUB_BASE_SLUG
-        run: echo "GITHUB_BASE_SLUG=$(echo ${{ steps.GITHUB_BASE_REF.outputs.GITHUB_BASE_REF }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')" >> $GITHUB_OUTPUT
       - id: TIMESTAMP
         run: echo "TIMESTAMP=$(date +'%Y%m%d_%H%m%S')" >> $GITHUB_OUTPUT
       - id: DATE
@@ -86,12 +71,20 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Future replacement for nrwl/last-successful-commit-action@v1 - Only here to make comparison with old action
+      - name: Determine last-successful-commit-action
         uses: nrwl/nx-set-shas@v3
-        id: new__last_successful_commit
+        id: last_successful_commit
         with:
           main-branch-name: ${{ steps.GITHUB_HEAD_REF.outputs.GITHUB_HEAD_REF }}
           workflow-id: 'nx-distributed-tasks.yml'
+      - id: GITHUB_BASE_REF
+        run: |
+          REBUILD_ALL=$(echo "${{ github.event.inputs.rebuild_all }}" | awk '{print tolower($0)}')
+          REBUILD_ALL_BASE_REF=$(if [[ "$REBUILD_ALL" == "yes" ]] || [[ "$REBUILD_ALL" == "y" ]]; then echo ${GITHUB_REF#refs/heads/}; fi)
+          LAST_SUCCESSFUL_COMMIT_COMMIT_HASH="${{ steps.last_successful_commit.outputs.base }}"
+          echo "GITHUB_BASE_REF=$(echo ${REBUILD_ALL_BASE_REF:-${LAST_SUCCESSFUL_COMMIT_COMMIT_HASH:-${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}}})" >> $GITHUB_OUTPUT
+      - id: GITHUB_BASE_SLUG
+        run: echo "GITHUB_BASE_SLUG=$(echo ${{ steps.GITHUB_BASE_REF.outputs.GITHUB_BASE_REF }} | sed -e 's/[^a-zA-Z0-9_.-]/_/g' | awk '{print tolower($0)}')" >> $GITHUB_OUTPUT
       - name: Display vars
         run: |
           echo "AUTOFORMAT_ALL_BRANCHES: ${{ steps.AUTOFORMAT_ALL_BRANCHES.outputs.AUTOFORMAT_ALL_BRANCHES }}"
@@ -104,11 +97,8 @@ jobs:
           echo "TIMESTAMP: ${{ steps.TIMESTAMP.outputs.TIMESTAMP }}"
           echo "DATE: ${{ steps.DATE.outputs.DATE }}"
           echo "DOCKER_HASH_IMAGE_NAME: ${{ steps.DOCKER_HASH_IMAGE_NAME.outputs.DOCKER_HASH_IMAGE_NAME }}"
-      - name: Display old and new last_successful_commit vars
-        run: |
-          echo "LAST_SUCCESSFUL_COMMIT_COMMIT_HASH : ${{ steps.last_successful_commit.outputs.commit_hash }}"
-          echo "NEW nrwl/nx-set-shas@v3 base : ${{ steps.new__last_successful_commit.outputs.base }}"
-          echo "NEW nrwl/nx-set-shas@v3 head : ${{ steps.new__last_successful_commit.outputs.head }}"
+          echo "LAST_SUCCESS_COMMIT_BASE: ${{ steps.LAST_SUCCESS_COMMIT_BASE.outputs.LAST_SUCCESS_COMMIT_BASE }}"
+          echo "LAST_SUCCESS_COMMIT_HEAD: ${{ steps.LAST_SUCCESS_COMMIT_HEAD.outputs.LAST_SUCCESS_COMMIT_HEAD }}"
 
   install-deps:
     runs-on: ubuntu-latest
